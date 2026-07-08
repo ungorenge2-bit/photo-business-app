@@ -1,7 +1,9 @@
-const CACHE_NAME = "shooting-distance-v1";
+const CACHE_NAME = "photo-business-app-v2";
 const ASSETS = [
   "./",
   "./index.html",
+  "./fuel.html",
+  "./group.html",
   "./manifest.json",
   "./icon.svg"
 ];
