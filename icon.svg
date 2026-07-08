@@ -1,8 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="燃費計算">
-  <rect width="512" height="512" rx="96" fill="#177245"/>
-  <circle cx="256" cy="250" r="160" fill="#ffffff" opacity="0.96"/>
-  <path d="M256 116a134 134 0 0 1 134 134" fill="none" stroke="#177245" stroke-width="28" stroke-linecap="round"/>
-  <path d="M256 250 340 176" fill="none" stroke="#177245" stroke-width="28" stroke-linecap="round"/>
-  <path d="M160 350h192" fill="none" stroke="#177245" stroke-width="32" stroke-linecap="round"/>
-  <text x="256" y="430" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="700" fill="#ffffff">km/L</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="撮影距離">
+  <rect width="512" height="512" rx="96" fill="#2f5f66"/>
+  <rect x="96" y="168" width="320" height="210" rx="42" fill="#ffffff"/>
+  <path d="M174 168l28-46h108l28 46" fill="#ffffff"/>
+  <circle cx="256" cy="273" r="70" fill="#2f5f66"/>
+  <circle cx="256" cy="273" r="42" fill="#ffffff" opacity="0.92"/>
+  <rect x="122" y="204" width="58" height="26" rx="13" fill="#2f5f66" opacity="0.88"/>
+  <path d="M100 420h312" stroke="#ffffff" stroke-width="26" stroke-linecap="round" opacity="0.9"/>
+  <path d="M132 420l54-54M256 420l54-54M380 420l54-54" stroke="#ffffff" stroke-width="18" stroke-linecap="round" opacity="0.65"/>
 </svg>
