@@ -4,287 +4,82 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>集合写真計算</title>
-  <meta name="description" content="集合写真の人数、列数、レンズ、会場奥行き、ストロボ条件を計算する現場向けWebアプリです。">
   <meta name="theme-color" content="#354f68">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="集合写真">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="./icon.svg">
   <style>
-    :root { --bg:#f4f2ed; --panel:#fff; --ink:#172025; --muted:#657276; --line:#d8dddc; --accent:#354f68; --accent-dark:#23384d; --accent-soft:#e7eef3; --good:#26724c; --warn:#a65319; --bad:#9d2f2f; --shadow:0 18px 48px rgba(25,36,42,.12); }
-    * { box-sizing: border-box; }
-    body { margin:0; min-height:100vh; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","YuGothic","Meiryo",sans-serif; background:linear-gradient(120deg,rgba(53,79,104,.12),transparent 45%),var(--bg); color:var(--ink); }
-    main { width:min(1180px,calc(100% - 28px)); margin:0 auto; padding:max(22px,env(safe-area-inset-top)) 0 max(44px,env(safe-area-inset-bottom)); }
-    header { margin-bottom:18px; }
-    h1 { margin:0 0 8px; font-size:clamp(28px,5vw,46px); line-height:1.16; letter-spacing:0; }
-    h2 { margin:0 0 12px; font-size:20px; }
-    .lead { margin:0; color:var(--muted); font-size:16px; line-height:1.7; }
-    .nav { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
-    .nav a { display:inline-flex; align-items:center; min-height:40px; padding:0 14px; border-radius:6px; background:var(--accent-soft); color:var(--ink); text-decoration:none; font-weight:700; }
-    .layout { display:grid; grid-template-columns:370px minmax(0,1fr); gap:18px; align-items:start; }
-    .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow); }
-    .controls, .voice-card { padding:18px; }
-    .voice-card { margin-bottom:18px; }
-    .field { padding:13px 0; border-bottom:1px solid var(--line); }
-    .field:first-child { padding-top:0; }
-    .field:last-child { border-bottom:0; padding-bottom:0; }
-    label { display:block; font-weight:700; font-size:14px; margin-bottom:6px; }
-    .hint { color:var(--muted); font-size:12px; line-height:1.5; }
-    input, select, textarea { width:100%; min-height:46px; border:1px solid #bdc8c9; border-radius:6px; padding:10px 12px; font-size:18px; color:var(--ink); background:#fff; }
-    textarea { min-height:88px; font-size:15px; line-height:1.5; resize:vertical; }
-    input:focus, select:focus, textarea:focus { outline:3px solid rgba(53,79,104,.18); border-color:var(--accent); }
-    .unit { position:relative; }
-    .unit span { position:absolute; right:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px; pointer-events:none; }
-    .unit input { padding-right:54px; }
-    .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .three { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
-    button { min-height:46px; border:0; border-radius:6px; padding:0 16px; font-size:15px; font-weight:700; cursor:pointer; }
-    button:disabled { opacity:.55; cursor:not-allowed; }
-    .primary { color:#fff; background:var(--accent); }
-    .primary:hover { background:var(--accent-dark); }
-    .secondary { color:var(--ink); background:var(--accent-soft); }
-    .danger { color:#fff; background:var(--bad); display:none; }
-    .danger.is-visible { display:inline-flex; align-items:center; }
-    .voice-top { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .voice-status { color:var(--muted); font-weight:700; }
-    .voice-box { display:none; margin-top:12px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
-    .voice-box.is-visible { display:block; }
-    .voice-section { padding:12px; border-bottom:1px solid var(--line); }
-    .voice-section:last-child { border-bottom:0; }
-    .voice-section p { margin:0 0 8px; color:var(--muted); font-size:13px; }
-    .parsed-list { margin:0; padding-left:18px; line-height:1.7; }
-    .voice-actions { display:flex; gap:10px; flex-wrap:wrap; }
-    .unsupported { display:none; margin-top:10px; padding:10px; border-left:4px solid var(--warn); background:#fff5ea; color:#65310f; font-size:13px; line-height:1.5; }
-    .unsupported.is-visible { display:block; }
-    .result-panel { overflow:hidden; }
-    .hero { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:center; padding:20px; color:#fff; background:#17252f; }
-    .hero p { margin:0 0 6px; color:rgba(255,255,255,.72); font-size:13px; }
-    .hero strong { display:block; font-size:clamp(32px,7vw,58px); line-height:1; }
-    .badge { display:inline-flex; align-items:center; min-height:34px; padding:0 12px; border-radius:999px; background:rgba(255,255,255,.12); font-weight:700; white-space:nowrap; }
-    .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); }
-    .metric { padding:16px; background:#fff; min-height:96px; }
-    .metric dt { margin:0 0 7px; color:var(--muted); font-size:12px; }
-    .metric dd { margin:0; font-size:22px; font-weight:800; }
-    .body { padding:18px 20px; border-top:1px solid var(--line); }
-    .row-plan { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-top:10px; }
-    .row-chip { padding:10px; border-radius:6px; background:#f5f7f6; border:1px solid var(--line); text-align:center; }
-    .row-chip strong { display:block; font-size:18px; }
-    .table-wrap { overflow-x:auto; border-top:1px solid var(--line); }
-    table { width:100%; min-width:760px; border-collapse:collapse; font-size:14px; }
-    th, td { padding:12px 10px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; vertical-align:top; }
-    th:first-child, td:first-child, th:last-child, td:last-child { text-align:left; }
-    th { color:var(--muted); font-size:12px; background:#f8faf8; }
-    td small { display:block; margin-top:4px; color:var(--muted); font-size:11px; white-space:normal; }
-    .judge { display:inline-block; padding:5px 8px; border-radius:999px; font-weight:700; font-size:12px; background:var(--accent-soft); color:var(--accent-dark); }
-    .judge.good { background:#e6f3ec; color:var(--good); }
-    .judge.warn { background:#fff2e7; color:var(--warn); }
-    .judge.bad { background:#fdecec; color:var(--bad); }
-    .notes { margin-top:18px; padding:16px 18px; line-height:1.75; color:#3f4b4f; }
-    .notes p { margin:0; }
-    @media (max-width:900px) { main { width:min(100% - 20px,640px); } .layout { grid-template-columns:1fr; } .metrics { grid-template-columns:1fr 1fr; } .hero { grid-template-columns:1fr; } .row-plan { grid-template-columns:repeat(3,1fr); } }
-    @media (max-width:480px) { .two, .three { grid-template-columns:1fr; } .metrics { grid-template-columns:1fr; } }
+    :root{--bg:#f4f2ed;--panel:#fff;--ink:#172025;--muted:#657276;--line:#d8dddc;--accent:#354f68;--accent-dark:#23384d;--soft:#e7eef3;--good:#26724c;--warn:#a65319;--bad:#9d2f2f;--shadow:0 18px 48px rgba(25,36,42,.12)}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","YuGothic","Meiryo",sans-serif;background:linear-gradient(120deg,rgba(53,79,104,.12),transparent 45%),var(--bg);color:var(--ink)}main{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:max(22px,env(safe-area-inset-top)) 0 max(44px,env(safe-area-inset-bottom))}header{margin-bottom:18px}h1{margin:0 0 8px;font-size:clamp(28px,5vw,46px);line-height:1.16;letter-spacing:0}h2{margin:0 0 12px;font-size:20px}.lead{margin:0;color:var(--muted);font-size:16px;line-height:1.7}.nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.nav a{display:inline-flex;align-items:center;min-height:40px;padding:0 14px;border-radius:6px;background:var(--soft);color:var(--ink);text-decoration:none;font-weight:700}.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow)}.voice-card,.controls,.body,.notes{padding:18px}.voice-card{margin-bottom:18px}.layout{display:grid;grid-template-columns:370px minmax(0,1fr);gap:18px;align-items:start}.field{padding:13px 0;border-bottom:1px solid var(--line)}.field:first-child{padding-top:0}.field:last-child{border-bottom:0;padding-bottom:0}label{display:block;font-weight:700;font-size:14px;margin-bottom:6px}.hint{color:var(--muted);font-size:12px;line-height:1.5}input,select,textarea{width:100%;min-height:46px;border:1px solid #bdc8c9;border-radius:6px;padding:10px 12px;font-size:18px;color:var(--ink);background:#fff}textarea{min-height:88px;font-size:15px;line-height:1.5;resize:vertical}input:focus,select:focus,textarea:focus{outline:3px solid rgba(53,79,104,.18);border-color:var(--accent)}.unit{position:relative}.unit span{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}.unit input{padding-right:54px}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}button{min-height:46px;border:0;border-radius:6px;padding:0 16px;font-size:15px;font-weight:700;cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}.primary{color:#fff;background:var(--accent)}.primary:hover{background:var(--accent-dark)}.secondary{color:var(--ink);background:var(--soft)}.danger{color:#fff;background:var(--bad);display:none}.danger.is-visible{display:inline-flex;align-items:center}.voice-top{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.voice-status{color:var(--muted);font-weight:700}.voice-box{display:none;margin-top:12px;border:1px solid var(--line);border-radius:8px;overflow:hidden}.voice-box.is-visible{display:block}.voice-section{padding:12px;border-bottom:1px solid var(--line)}.voice-section:last-child{border-bottom:0}.voice-section p{margin:0 0 8px;color:var(--muted);font-size:13px}.parsed-list{margin:0;padding-left:18px;line-height:1.7}.voice-actions{display:flex;gap:10px;flex-wrap:wrap}.unsupported{margin-top:10px;padding:10px;border-left:4px solid var(--warn);background:#fff5ea;color:#65310f;font-size:13px;line-height:1.5}.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:20px;color:#fff;background:#17252f}.hero p{margin:0 0 6px;color:rgba(255,255,255,.72);font-size:13px}.hero strong{display:block;font-size:clamp(32px,7vw,58px);line-height:1}.badge{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.12);font-weight:700;white-space:nowrap}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)}.metric{padding:16px;background:#fff;min-height:96px}.metric dt{margin:0 0 7px;color:var(--muted);font-size:12px}.metric dd{margin:0;font-size:22px;font-weight:800}.row-plan{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:10px}.row-chip{padding:10px;border-radius:6px;background:#f5f7f6;border:1px solid var(--line);text-align:center}.row-chip strong{display:block;font-size:18px}.table-wrap{overflow-x:auto;border-top:1px solid var(--line)}table{width:100%;min-width:760px;border-collapse:collapse;font-size:14px}th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;vertical-align:top}th:first-child,td:first-child,th:last-child,td:last-child{text-align:left}th{color:var(--muted);font-size:12px;background:#f8faf8}td small{display:block;margin-top:4px;color:var(--muted);font-size:11px;white-space:normal}.judge{display:inline-block;padding:5px 8px;border-radius:999px;font-weight:700;font-size:12px;background:var(--soft);color:var(--accent-dark)}.judge.good{background:#e6f3ec;color:var(--good)}.judge.warn{background:#fff2e7;color:var(--warn)}.judge.bad{background:#fdecec;color:var(--bad)}.notes{margin-top:18px;line-height:1.75;color:#3f4b4f}.notes p{margin:0}@media(max-width:900px){main{width:min(100% - 20px,640px)}.layout{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.hero{grid-template-columns:1fr}.row-plan{grid-template-columns:repeat(3,1fr)}}@media(max-width:480px){.two,.three{grid-template-columns:1fr}.metrics{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-  <main>
-    <header>
-      <h1>集合写真計算</h1>
-      <p class="lead">人数、列数、前列人数、レンズ、会場奥行き、ISO、絞り、ストロボ条件から、撮影距離と現場の目安を計算します。</p>
-      <nav class="nav" aria-label="アプリ切り替え">
-        <a href="./">撮影距離</a>
-        <a href="./fuel.html">燃費計算</a>
-        <a href="./group.html" aria-current="page">集合写真</a>
-      </nav>
-    </header>
+<main>
+  <header>
+    <h1>集合写真計算</h1>
+    <p class="lead">人数、列数、前列人数、レンズ、会場奥行き、ISO、絞り、ストロボ条件から、撮影距離と現場の目安を計算します。</p>
+    <nav class="nav"><a href="./">撮影距離</a><a href="./fuel.html">燃費計算</a><a href="./group.html" aria-current="page">集合写真</a></nav>
+  </header>
 
-    <section class="panel voice-card" aria-label="音声入力">
-      <div class="voice-top">
-        <button class="primary" id="voiceButton" type="button">🎙 音声で入力</button>
-        <button class="danger" id="stopVoiceButton" type="button">停止</button>
-        <button class="secondary" id="parseTextButton" type="button">文章を解析</button>
-        <span class="voice-status" id="voiceStatus">基本は下の文章入力欄に入力して「文章を解析」を押してください</span>
-      </div>
-      <div class="unsupported" id="unsupportedMessage">このブラウザでは音声入力ボタンが使えない可能性があります。アプリ内マイクではなく、下の文章入力欄をタップしてiPhoneキーボードのマイク入力を使ってください。</div>
-      <div class="field" style="border-bottom:0;margin-top:12px;padding-bottom:0">
-        <label for="manualSpeechText">文章入力欄</label>
-        <textarea id="manualSpeechText" placeholder="例: 30人、3列、前列10人、35ミリ、奥行き10メートル"></textarea>
-        <div class="hint">一番安定する方法です。iPhoneキーボードのマイクでここへ話してから「文章を解析」を押してください。</div>
-      </div>
-      <div class="voice-box" id="voiceBox">
-        <div class="voice-section"><p>聞き取った内容：</p><strong id="transcriptText"></strong></div>
-        <div class="voice-section"><p>反映する内容：</p><ul class="parsed-list" id="parsedList"></ul></div>
-        <div class="voice-section voice-actions">
-          <button class="primary" id="applyVoiceButton" type="button">この内容で反映</button>
-          <button class="secondary" id="retryVoiceButton" type="button">やり直す</button>
-        </div>
-      </div>
-    </section>
+  <section class="panel voice-card" aria-label="音声入力">
+    <div class="voice-top">
+      <button class="primary" id="voiceButton" type="button">🎙 音声で入力</button>
+      <button class="danger" id="stopVoiceButton" type="button">停止</button>
+      <button class="secondary" id="parseTextButton" type="button">文章を解析</button>
+      <span class="voice-status" id="voiceStatus">基本は下の文章入力欄に入力して「文章を解析」を押してください</span>
+    </div>
+    <div class="unsupported" id="unsupportedMessage">iPhoneでは、アプリ内音声入力よりキーボードのマイク入力を推奨します。下の文章入力欄をタップして、iPhoneキーボードのマイクで入力し、「文章を解析」を押してください。</div>
+    <div class="field" style="border-bottom:0;margin-top:12px;padding-bottom:0">
+      <label for="manualSpeechText">文章入力欄</label>
+      <textarea id="manualSpeechText" placeholder="例: 30人、3列、前列10人、35ミリ、奥行き10メートル"></textarea>
+      <div class="hint">一番安定する方法です。iPhoneキーボードのマイクでここへ話してから「文章を解析」を押してください。</div>
+    </div>
+    <div class="voice-box" id="voiceBox">
+      <div class="voice-section"><p>聞き取った内容：</p><strong id="transcriptText"></strong></div>
+      <div class="voice-section"><p>反映する内容：</p><ul class="parsed-list" id="parsedList"></ul></div>
+      <div class="voice-section voice-actions"><button class="primary" id="applyVoiceButton" type="button">この内容で反映</button><button class="secondary" id="retryVoiceButton" type="button">やり直す</button></div>
+    </div>
+  </section>
 
-    <section class="layout" aria-label="集合写真計算ツール">
-      <aside class="panel controls">
-        <div class="field three">
-          <div><label for="totalPeople">総人数</label><div class="unit"><input id="totalPeople" type="number" min="1" max="500" value="30" inputmode="numeric"><span>名</span></div></div>
-          <div><label for="rowCount">列数</label><div class="unit"><input id="rowCount" type="number" min="1" max="12" value="3" inputmode="numeric"><span>列</span></div></div>
-          <div><label for="frontPeople">前列人数</label><div class="unit"><input id="frontPeople" type="number" min="1" max="200" value="10" inputmode="numeric"><span>名</span></div></div>
-        </div>
-        <div class="field two">
-          <div><label for="lensMm">レンズ</label><div class="unit"><input id="lensMm" type="number" min="10" max="400" value="35" inputmode="numeric"><span>mm</span></div></div>
-          <div><label for="roomDepthM">会場奥行き</label><div class="unit"><input id="roomDepthM" type="number" min="1" max="80" step="0.1" value="10" inputmode="decimal"><span>m</span></div></div>
-        </div>
-        <div class="field three">
-          <div><label for="isoValue">ISO</label><select id="isoValue"><option>100</option><option>200</option><option selected>400</option><option>800</option><option>1600</option></select></div>
-          <div><label for="apertureValue">絞り</label><select id="apertureValue"><option value="5.6">F5.6</option><option value="8" selected>F8</option><option value="11">F11</option><option value="16">F16</option></select></div>
-          <div><label for="lightCount">ストロボ</label><div class="unit"><input id="lightCount" type="number" min="0" max="12" value="2" inputmode="numeric"><span>灯</span></div></div>
-        </div>
-        <div class="field">
-          <label for="modifier">光の使い方</label>
-          <select id="modifier">
-            <option value="direct">直当て</option>
-            <option value="diffuser">ディフューザー</option>
-            <option value="umbrella" selected>アンブレラ</option>
-            <option value="softbox">ソフトボックス</option>
-            <option value="bounce">天井バウンス</option>
-          </select>
-        </div>
-      </aside>
-
-      <section class="panel result-panel" aria-live="polite">
-        <div class="hero"><div><p>推奨撮影距離</p><strong id="mainDistance">0.00m</strong></div><span class="badge" id="mainJudge">判定</span></div>
-        <dl class="metrics">
-          <div class="metric"><dt>必要な横幅</dt><dd id="groupWidth">0.0m</dd></div>
-          <div class="metric"><dt>列の奥行き</dt><dd id="groupDepth">0.0m</dd></div>
-          <div class="metric"><dt>必要な会場奥行き</dt><dd id="neededRoom">0.0m</dd></div>
-          <div class="metric"><dt>ストロボ目安</dt><dd id="flashGuide">-</dd></div>
-        </dl>
-        <div class="body"><h2>列ごとの人数目安</h2><div class="row-plan" id="rowPlan"></div></div>
-        <div class="table-wrap"><table><thead><tr><th>項目</th><th>計算結果</th><th>現場メモ</th></tr></thead><tbody id="resultRows"></tbody></table></div>
-      </section>
-    </section>
-
-    <section class="panel notes"><h2>注意</h2><p>このツールは集合写真の現場判断用の簡易計算です。人物の体格、肩幅、椅子の有無、段差、背景、天井高、ストロボ出力、壁や天井の色によって必要距離や光量は変わります。最終判断は現場でテスト撮影して確認してください。</p></section>
-  </main>
-
-  <script>
-    const fields = {
-      totalPeople: document.getElementById("totalPeople"), rowCount: document.getElementById("rowCount"), frontPeople: document.getElementById("frontPeople"), lensMm: document.getElementById("lensMm"), roomDepthM: document.getElementById("roomDepthM"), isoValue: document.getElementById("isoValue"), apertureValue: document.getElementById("apertureValue"), lightCount: document.getElementById("lightCount"), modifier: document.getElementById("modifier")
-    };
-    const output = {
-      mainDistance: document.getElementById("mainDistance"), mainJudge: document.getElementById("mainJudge"), groupWidth: document.getElementById("groupWidth"), groupDepth: document.getElementById("groupDepth"), neededRoom: document.getElementById("neededRoom"), flashGuide: document.getElementById("flashGuide"), rowPlan: document.getElementById("rowPlan"), resultRows: document.getElementById("resultRows")
-    };
-    const voice = {
-      button: document.getElementById("voiceButton"), stop: document.getElementById("stopVoiceButton"), parseText: document.getElementById("parseTextButton"), status: document.getElementById("voiceStatus"), unsupported: document.getElementById("unsupportedMessage"), manualText: document.getElementById("manualSpeechText"), box: document.getElementById("voiceBox"), transcript: document.getElementById("transcriptText"), parsedList: document.getElementById("parsedList"), apply: document.getElementById("applyVoiceButton"), retry: document.getElementById("retryVoiceButton")
-    };
-    const MODIFIERS = { direct:{label:"直当て",loss:0}, diffuser:{label:"ディフューザー",loss:1}, umbrella:{label:"アンブレラ",loss:1.5}, softbox:{label:"ソフトボックス",loss:2}, bounce:{label:"天井バウンス",loss:2.5} };
-    const KANJI_NUM = { "一":1, "二":2, "三":3, "四":4, "五":5, "六":6, "七":7, "八":8, "九":9, "十":10 };
-    const READY_TEXT = "基本は下の文章入力欄に入力して「文章を解析」を押してください";
-    const TIMEOUT_TEXT = "音声入力を終了しました。うまく聞き取れない場合は、下の文章入力欄に入力してください";
-    let pendingValues = null;
-    let listening = false;
-    let recognition = null;
-    let voiceTimer = null;
-
-    function n(input, fallback) { const value = Number(input.value); return Number.isFinite(value) && value > 0 ? value : fallback; }
-    function fmt(value, digit = 1) { return value.toFixed(digit); }
-    function setListening(active, message) {
-      listening = active;
-      voice.button.disabled = active;
-      voice.stop.classList.toggle("is-visible", active);
-      voice.status.textContent = message || (active ? "聞き取り中です" : READY_TEXT);
-      if (!active && voiceTimer) { clearTimeout(voiceTimer); voiceTimer = null; }
-    }
-    function finishListening(message) { setListening(false, message || READY_TEXT); }
-    function safeStopRecognition(message) {
-      if (!listening) { finishListening(message); return; }
-      try { recognition && recognition.stop(); } catch (error) { try { recognition && recognition.abort(); } catch (_) {} }
-      finishListening(message);
-    }
-    function normalizeText(text) {
-      let normalized = text.replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0));
-      Object.entries(KANJI_NUM).forEach(([k, v]) => normalized = normalized.replaceAll(k, String(v)));
-      normalized = normalized.replace(/アイエスオー/g, "iso").replace(/ＩＳＯ/gi, "iso").replace(/ミリ/g, "mm").replace(/メートル/g, "m");
-      return normalized.toLowerCase();
-    }
-    function matchNumber(text, patterns) { for (const pattern of patterns) { const found = text.match(pattern); if (found) return Number(found[1]); } return null; }
-    function parseSpeech(text) {
-      const normalized = normalizeText(text);
-      const values = {};
-      const total = matchNumber(normalized, [/([0-9]+)\s*(?:人|名)/]);
-      const rows = matchNumber(normalized, [/([0-9]+)\s*列/]);
-      const front = matchNumber(normalized, [/(?:前列|前)\s*([0-9]+)\s*(?:人|名)?/]);
-      const lens = matchNumber(normalized, [/([0-9]+)\s*(?:mm|ｍｍ)/]);
-      const room = matchNumber(normalized, [/(?:奥行き|部屋|会場)\s*([0-9]+(?:\.[0-9]+)?)\s*(?:m|ｍ)?/]);
-      const iso = matchNumber(normalized, [/iso\s*([0-9]+)/]);
-      const aperture = matchNumber(normalized, [/(?:f\/?|絞り)\s*([0-9]+(?:\.[0-9]+)?)/]);
-      const lights = matchNumber(normalized, [/(?:ストロボ|ライト)?\s*([0-9]+)\s*灯/]);
-      if (total) values.totalPeople = total; if (rows) values.rowCount = rows; if (front) values.frontPeople = front; if (lens) values.lensMm = lens; if (room) values.roomDepthM = room; if (iso) values.isoValue = iso; if (aperture) values.apertureValue = aperture; if (lights) values.lightCount = lights;
-      if (normalized.includes("直当て")) values.modifier = "direct";
-      if (normalized.includes("ディフューザー")) values.modifier = "diffuser";
-      if (normalized.includes("アンブレラ")) values.modifier = "umbrella";
-      if (normalized.includes("ソフトボックス")) values.modifier = "softbox";
-      if (normalized.includes("天井バウンス") || normalized.includes("バウンス")) values.modifier = "bounce";
-      return values;
-    }
-    function labelFor(key, value) {
-      const labels = { totalPeople:`総人数：${value}名`, rowCount:`列数：${value}列`, frontPeople:`前列人数：${value}名`, lensMm:`レンズ：${value}mm`, roomDepthM:`会場奥行き：${value}m`, isoValue:`ISO：${value}`, apertureValue:`絞り：F${value}`, lightCount:`ストロボ：${value}灯`, modifier:`光の使い方：${MODIFIERS[value]?.label || value}` };
-      return labels[key] || `${key}: ${value}`;
-    }
-    function showParsed(text, values) {
-      pendingValues = values;
-      voice.transcript.textContent = `「${text}」`;
-      const entries = Object.entries(values);
-      voice.parsedList.innerHTML = entries.length ? entries.map(([k, v]) => `<li>${labelFor(k, v)}</li>`).join("") : "<li>読み取れる項目がありませんでした。文章を少し変えてください。</li>";
-      voice.box.classList.add("is-visible");
-    }
-    function applyParsed(values) { Object.entries(values).forEach(([key, value]) => { if (fields[key]) fields[key].value = String(value); }); calculate(); }
-    function rowDistribution(total, rows, front) {
-      const plan = []; let remaining = total;
-      for (let i = 0; i < rows; i++) { const target = i === 0 ? front : Math.ceil((total - front) / Math.max(1, rows - 1)); const value = i === rows - 1 ? remaining : Math.min(remaining, target); plan.push(Math.max(0, value)); remaining -= value; }
-      if (remaining > 0) plan[plan.length - 1] += remaining;
-      return plan;
-    }
-    function calculate() {
-      const total = Math.round(n(fields.totalPeople, 30)); const rows = Math.max(1, Math.round(n(fields.rowCount, 3))); const front = Math.max(1, Math.round(n(fields.frontPeople, Math.ceil(total / rows)))); const lens = n(fields.lensMm, 35); const room = n(fields.roomDepthM, 10); const iso = n(fields.isoValue, 400); const aperture = n(fields.apertureValue, 8); const lights = Math.max(0, Math.round(n(fields.lightCount, 2))); const modifier = MODIFIERS[fields.modifier.value] || MODIFIERS.umbrella;
-      const plan = rowDistribution(total, rows, front); const maxPeople = Math.max(...plan, front); const groupWidthM = maxPeople * 0.58 + 0.9; const groupDepthM = Math.max(0.9, (rows - 1) * 0.78 + 0.9); const distanceM = lens * (groupWidthM * 1000) / 36 / 1000; const neededRoomM = distanceM + groupDepthM + 1.2; const effectiveDistanceM = distanceM + groupDepthM * 0.5; const modifierFactor = Math.pow(2, modifier.loss / 2); const lightFactor = lights > 0 ? Math.sqrt(lights) : 1; const requiredGn = effectiveDistanceM * aperture / Math.sqrt(iso / 100) * modifierFactor / lightFactor;
-      const roomGap = room - neededRoomM; let judge = "標準的"; let judgeClass = ""; if (roomGap >= 1.5) { judge = "余裕あり"; judgeClass = "good"; } else if (roomGap >= 0) { judge = "ぎりぎり可能"; judgeClass = "warn"; } else { judge = "奥行き不足"; judgeClass = "bad"; }
-      output.mainDistance.textContent = `${fmt(distanceM, 2)}m`; output.mainJudge.textContent = judge; output.mainJudge.className = `badge ${judgeClass}`; output.groupWidth.textContent = `${fmt(groupWidthM, 1)}m`; output.groupDepth.textContent = `${fmt(groupDepthM, 1)}m`; output.neededRoom.textContent = `${fmt(neededRoomM, 1)}m`; output.flashGuide.textContent = lights > 0 ? `GN${Math.ceil(requiredGn)}` : "自然光";
-      output.rowPlan.innerHTML = plan.map((count, i) => `<div class="row-chip"><span>${i + 1}列目</span><strong>${count}名</strong></div>`).join("");
-      output.resultRows.innerHTML = `<tr><td>集合写真レイアウト</td><td>${total}名 / ${rows}列 / 前列${front}名</td><td>最大列 ${maxPeople}名。肩幅を約58cmで概算しています。</td></tr><tr><td>撮影距離</td><td>${lens}mmで約${fmt(distanceM, 2)}m</td><td>35mmフルサイズ横位置、横幅基準の簡易計算です。</td></tr><tr><td>会場奥行き</td><td>必要 ${fmt(neededRoomM, 1)}m / 会場 ${fmt(room, 1)}m</td><td><span class="judge ${judgeClass}">${judge}</span><small>集合の奥行きとカメラ後方余裕1.2mを含みます。</small></td></tr><tr><td>ストロボ</td><td>${lights}灯 / ISO${iso} / F${aperture} / ${modifier.label}</td><td>目安 ${lights > 0 ? `1灯あたりGN${Math.ceil(requiredGn)}前後` : "自然光または定常光"}。テスト撮影で調整してください。</td></tr>`;
-    }
-
-    Object.values(fields).forEach((field) => field.addEventListener("input", calculate));
-    Object.values(fields).forEach((field) => field.addEventListener("change", calculate));
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      voice.button.disabled = true;
-      voice.unsupported.classList.add("is-visible");
-      finishListening(READY_TEXT);
-    } else {
-      recognition = new SpeechRecognition();
-      recognition.lang = "ja-JP";
-      recognition.interimResults = false;
-      recognition.continuous = false;
-      voice.button.addEventListener("click", () => {
-        if (listening) return;
-        setListening(true, "聞き取り中です");
-        voiceTimer = window.setTimeout(() => safeStopRecognition(TIMEOUT_TEXT), 10000);
-        try { recognition.start(); } catch (error) { finishListening("音声入力を開始できませんでした。下の文章入力欄を使ってください"); voice.unsupported.classList.add("is-visible"); }
-      });
-      voice.stop.addEventListener("click", () => safeStopRecognition(TIMEOUT_TEXT));
-      recognition.onresult = (event) => {
-        const text = event.results && event.results[0] && event.results[0][0] ? event.results[0][0].transcript : "";
-        if (text) { voice.manualText.value = text; showParsed(text, parseSpeech(text)); finishListening("聞き取りが完了しました"); }
-        else { finishListening(TIMEOUT_TEXT); }
-      };
-      recognition.onspeechend = () => safeStopRecognition("音声入力を終了しました");
-      recognition.onerror = () => { voice.unsupported.classList.add("is-visible"); finishListening("音声入力に失敗しました。下の文章入力欄かiPhoneキーボードのマイク入力を使ってください"); };
-      recognition.onend = () => { if (listening) finishListening(TIMEOUT_TEXT); else setListening(false, voice.status.textContent || READY_TEXT); };
-    }
-    voice.parseText.addEventListener("click", () => { const text = voice.manualText.value.trim(); if (text) showParsed(text, parseSpeech(text)); });
-    voice.apply.addEventListener("click", () => { if (pendingValues) applyParsed(pendingValues); voice.box.classList.remove("is-visible"); });
-    voice.retry.addEventListener("click", () => { pendingValues = null; voice.manualText.value = ""; voice.box.classList.remove("is-visible"); finishListening(READY_TEXT); });
-    calculate();
-  </script>
+  <section class="layout">
+    <aside class="panel controls">
+      <div class="field three"><div><label for="totalPeople">総人数</label><div class="unit"><input id="totalPeople" type="number" min="1" max="500" value="30"><span>名</span></div></div><div><label for="rowCount">列数</label><div class="unit"><input id="rowCount" type="number" min="1" max="12" value="3"><span>列</span></div></div><div><label for="frontPeople">前列人数</label><div class="unit"><input id="frontPeople" type="number" min="1" max="200" value="10"><span>名</span></div></div></div>
+      <div class="field two"><div><label for="lensMm">レンズ</label><div class="unit"><input id="lensMm" type="number" min="10" max="400" value="35"><span>mm</span></div></div><div><label for="roomDepthM">会場奥行き</label><div class="unit"><input id="roomDepthM" type="number" min="1" max="80" step="0.1" value="10"><span>m</span></div></div></div>
+      <div class="field three"><div><label for="isoValue">ISO</label><select id="isoValue"><option>100</option><option>200</option><option selected>400</option><option>800</option><option>1600</option></select></div><div><label for="apertureValue">絞り</label><select id="apertureValue"><option value="5.6">F5.6</option><option value="8" selected>F8</option><option value="11">F11</option><option value="16">F16</option></select></div><div><label for="lightCount">ストロボ</label><div class="unit"><input id="lightCount" type="number" min="0" max="12" value="2"><span>灯</span></div></div></div>
+      <div class="field"><label for="modifier">光の使い方</label><select id="modifier"><option value="direct">直当て</option><option value="diffuser">ディフューザー</option><option value="umbrella" selected>アンブレラ</option><option value="softbox">ソフトボックス</option><option value="bounce">天井バウンス</option></select></div>
+    </aside>
+    <section class="panel result-panel"><div class="hero"><div><p>推奨撮影距離</p><strong id="mainDistance">0.00m</strong></div><span class="badge" id="mainJudge">判定</span></div><dl class="metrics"><div class="metric"><dt>必要な横幅</dt><dd id="groupWidth">0.0m</dd></div><div class="metric"><dt>列の奥行き</dt><dd id="groupDepth">0.0m</dd></div><div class="metric"><dt>必要な会場奥行き</dt><dd id="neededRoom">0.0m</dd></div><div class="metric"><dt>ストロボ目安</dt><dd id="flashGuide">-</dd></div></dl><div class="body"><h2>列ごとの人数目安</h2><div class="row-plan" id="rowPlan"></div></div><div class="table-wrap"><table><thead><tr><th>項目</th><th>計算結果</th><th>現場メモ</th></tr></thead><tbody id="resultRows"></tbody></table></div></section>
+  </section>
+  <section class="panel notes"><h2>注意</h2><p>このツールは集合写真の現場判断用の簡易計算です。人物の体格、肩幅、椅子の有無、段差、背景、天井高、ストロボ出力、壁や天井の色によって必要距離や光量は変わります。最終判断は現場でテスト撮影して確認してください。</p></section>
+</main>
+<script>
+const fields={totalPeople:gid('totalPeople'),rowCount:gid('rowCount'),frontPeople:gid('frontPeople'),lensMm:gid('lensMm'),roomDepthM:gid('roomDepthM'),isoValue:gid('isoValue'),apertureValue:gid('apertureValue'),lightCount:gid('lightCount'),modifier:gid('modifier')};
+const output={mainDistance:gid('mainDistance'),mainJudge:gid('mainJudge'),groupWidth:gid('groupWidth'),groupDepth:gid('groupDepth'),neededRoom:gid('neededRoom'),flashGuide:gid('flashGuide'),rowPlan:gid('rowPlan'),resultRows:gid('resultRows')};
+const voice={button:gid('voiceButton'),stop:gid('stopVoiceButton'),parseText:gid('parseTextButton'),status:gid('voiceStatus'),unsupported:gid('unsupportedMessage'),manualText:gid('manualSpeechText'),box:gid('voiceBox'),transcript:gid('transcriptText'),parsedList:gid('parsedList'),apply:gid('applyVoiceButton'),retry:gid('retryVoiceButton')};
+const MODIFIERS={direct:{label:'直当て',loss:0},diffuser:{label:'ディフューザー',loss:1},umbrella:{label:'アンブレラ',loss:1.5},softbox:{label:'ソフトボックス',loss:2},bounce:{label:'天井バウンス',loss:2.5}};
+const KANJI_NUM={一:1,二:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9,十:10};
+const READY_TEXT='基本は下の文章入力欄に入力して「文章を解析」を押してください';
+const TIMEOUT_TEXT='音声入力を終了しました。うまく聞き取れない場合は、下の文章入力欄に入力してください';
+let pendingValues=null,listening=false,recognition=null,voiceTimer=null;
+function gid(id){return document.getElementById(id)}
+function n(input,fallback){const value=Number(input.value);return Number.isFinite(value)&&value>0?value:fallback}
+function fmt(value,digit=1){return value.toFixed(digit)}
+function clearVoiceTimer(){if(voiceTimer){clearTimeout(voiceTimer);voiceTimer=null}}
+function setListening(active,message){listening=active;voice.button.disabled=active;voice.stop.classList.toggle('is-visible',active);voice.status.textContent=message||(active?'聞き取り中です':READY_TEXT);if(!active)clearVoiceTimer()}
+function stopRecognitionHard(message){clearVoiceTimer();try{recognition&&recognition.stop()}catch(_){}try{recognition&&recognition.abort()}catch(_){}setListening(false,message||READY_TEXT)}
+function normalizeText(text){let normalized=text.replace(/[０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-0xFEE0));Object.entries(KANJI_NUM).forEach(([k,v])=>normalized=normalized.replaceAll(k,String(v)));return normalized.replace(/アイエスオー/g,'iso').replace(/ＩＳＯ/gi,'iso').replace(/ミリ/g,'mm').replace(/メートル/g,'m').toLowerCase()}
+function matchNumber(text,patterns){for(const pattern of patterns){const found=text.match(pattern);if(found)return Number(found[1])}return null}
+function parseSpeech(text){const normalized=normalizeText(text);const values={};const total=matchNumber(normalized,[/([0-9]+)\s*(?:人|名)/]);const rows=matchNumber(normalized,[/([0-9]+)\s*列/]);const front=matchNumber(normalized, [/(?:前列|前)\s*([0-9]+)\s*(?:人|名)?/]);const lens=matchNumber(normalized,[/([0-9]+)\s*(?:mm|ｍｍ)/]);const room=matchNumber(normalized,[/(?:奥行き|部屋|会場)\s*([0-9]+(?:\.[0-9]+)?)\s*(?:m|ｍ)?/]);const iso=matchNumber(normalized,[/iso\s*([0-9]+)/]);const aperture=matchNumber(normalized,[/(?:f\/?|絞り)\s*([0-9]+(?:\.[0-9]+)?)/]);const lights=matchNumber(normalized,[/(?:ストロボ|ライト)?\s*([0-9]+)\s*灯/]);if(total)values.totalPeople=total;if(rows)values.rowCount=rows;if(front)values.frontPeople=front;if(lens)values.lensMm=lens;if(room)values.roomDepthM=room;if(iso)values.isoValue=iso;if(aperture)values.apertureValue=aperture;if(lights)values.lightCount=lights;if(normalized.includes('直当て'))values.modifier='direct';if(normalized.includes('ディフューザー'))values.modifier='diffuser';if(normalized.includes('アンブレラ'))values.modifier='umbrella';if(normalized.includes('ソフトボックス'))values.modifier='softbox';if(normalized.includes('天井バウンス')||normalized.includes('バウンス'))values.modifier='bounce';return values}
+function labelFor(key,value){const labels={totalPeople:`総人数：${value}名`,rowCount:`列数：${value}列`,frontPeople:`前列人数：${value}名`,lensMm:`レンズ：${value}mm`,roomDepthM:`会場奥行き：${value}m`,isoValue:`ISO：${value}`,apertureValue:`絞り：F${value}`,lightCount:`ストロボ：${value}灯`,modifier:`光の使い方：${MODIFIERS[value]?.label||value}`};return labels[key]||`${key}: ${value}`}
+function showParsed(text,values){pendingValues=values;voice.transcript.textContent=`「${text}」`;const entries=Object.entries(values);voice.parsedList.innerHTML=entries.length?entries.map(([k,v])=>`<li>${labelFor(k,v)}</li>`).join(''):'<li>読み取れる項目がありませんでした。文章を少し変えてください。</li>';voice.box.classList.add('is-visible')}
+function applyParsed(values){Object.entries(values).forEach(([key,value])=>{if(fields[key])fields[key].value=String(value)});calculate()}
+function rowDistribution(total,rows,front){const plan=[];let remaining=total;for(let i=0;i<rows;i++){const target=i===0?front:Math.ceil((total-front)/Math.max(1,rows-1));const value=i===rows-1?remaining:Math.min(remaining,target);plan.push(Math.max(0,value));remaining-=value}if(remaining>0)plan[plan.length-1]+=remaining;return plan}
+function calculate(){const total=Math.round(n(fields.totalPeople,30));const rows=Math.max(1,Math.round(n(fields.rowCount,3)));const front=Math.max(1,Math.round(n(fields.frontPeople,Math.ceil(total/rows))));const lens=n(fields.lensMm,35);const room=n(fields.roomDepthM,10);const iso=n(fields.isoValue,400);const aperture=n(fields.apertureValue,8);const lights=Math.max(0,Math.round(n(fields.lightCount,2)));const modifier=MODIFIERS[fields.modifier.value]||MODIFIERS.umbrella;const plan=rowDistribution(total,rows,front);const maxPeople=Math.max(...plan,front);const groupWidthM=maxPeople*.58+.9;const groupDepthM=Math.max(.9,(rows-1)*.78+.9);const distanceM=lens*(groupWidthM*1000)/36/1000;const neededRoomM=distanceM+groupDepthM+1.2;const effectiveDistanceM=distanceM+groupDepthM*.5;const modifierFactor=Math.pow(2,modifier.loss/2);const lightFactor=lights>0?Math.sqrt(lights):1;const requiredGn=effectiveDistanceM*aperture/Math.sqrt(iso/100)*modifierFactor/lightFactor;const roomGap=room-neededRoomM;let judge='標準的',judgeClass='';if(roomGap>=1.5){judge='余裕あり';judgeClass='good'}else if(roomGap>=0){judge='ぎりぎり可能';judgeClass='warn'}else{judge='奥行き不足';judgeClass='bad'}output.mainDistance.textContent=`${fmt(distanceM,2)}m`;output.mainJudge.textContent=judge;output.mainJudge.className=`badge ${judgeClass}`;output.groupWidth.textContent=`${fmt(groupWidthM,1)}m`;output.groupDepth.textContent=`${fmt(groupDepthM,1)}m`;output.neededRoom.textContent=`${fmt(neededRoomM,1)}m`;output.flashGuide.textContent=lights>0?`GN${Math.ceil(requiredGn)}`:'自然光';output.rowPlan.innerHTML=plan.map((count,i)=>`<div class="row-chip"><span>${i+1}列目</span><strong>${count}名</strong></div>`).join('');output.resultRows.innerHTML=`<tr><td>集合写真レイアウト</td><td>${total}名 / ${rows}列 / 前列${front}名</td><td>最大列 ${maxPeople}名。肩幅を約58cmで概算しています。</td></tr><tr><td>撮影距離</td><td>${lens}mmで約${fmt(distanceM,2)}m</td><td>35mmフルサイズ横位置、横幅基準の簡易計算です。</td></tr><tr><td>会場奥行き</td><td>必要 ${fmt(neededRoomM,1)}m / 会場 ${fmt(room,1)}m</td><td><span class="judge ${judgeClass}">${judge}</span><small>集合の奥行きとカメラ後方余裕1.2mを含みます。</small></td></tr><tr><td>ストロボ</td><td>${lights}灯 / ISO${iso} / F${aperture} / ${modifier.label}</td><td>目安 ${lights>0?`1灯あたりGN${Math.ceil(requiredGn)}前後`:'自然光または定常光'}。テスト撮影で調整してください。</td></tr>`}
+Object.values(fields).forEach(field=>{field.addEventListener('input',calculate);field.addEventListener('change',calculate)});
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SpeechRecognition){voice.button.disabled=true;voice.unsupported.classList.add('is-visible');setListening(false,READY_TEXT)}else{recognition=new SpeechRecognition();recognition.lang='ja-JP';recognition.interimResults=false;recognition.continuous=false;voice.button.addEventListener('click',()=>{if(listening)return;setListening(true,'聞き取り中です');voiceTimer=window.setTimeout(()=>stopRecognitionHard(TIMEOUT_TEXT),10000);try{recognition.start()}catch(_){stopRecognitionHard('音声入力を開始できませんでした。下の文章入力欄を使ってください')}});voice.stop.addEventListener('click',()=>stopRecognitionHard(TIMEOUT_TEXT));recognition.onresult=event=>{const text=event.results&&event.results[0]&&event.results[0][0]?event.results[0][0].transcript:'';if(text){voice.manualText.value=text;showParsed(text,parseSpeech(text));stopRecognitionHard('聞き取りが完了しました')}else stopRecognitionHard(TIMEOUT_TEXT)};recognition.onspeechend=()=>stopRecognitionHard('音声入力を終了しました');recognition.onerror=()=>stopRecognitionHard('音声入力に失敗しました。下の文章入力欄かiPhoneキーボードのマイク入力を使ってください');recognition.onend=()=>setListening(false,voice.status.textContent&&voice.status.textContent!=='聞き取り中です'?voice.status.textContent:READY_TEXT)}
+['pagehide','beforeunload','blur'].forEach(eventName=>window.addEventListener(eventName,()=>stopRecognitionHard(READY_TEXT)));document.addEventListener('visibilitychange',()=>{if(document.hidden)stopRecognitionHard(READY_TEXT)});
+voice.parseText.addEventListener('click',()=>{const text=voice.manualText.value.trim();if(text)showParsed(text,parseSpeech(text))});voice.apply.addEventListener('click',()=>{if(pendingValues)applyParsed(pendingValues);voice.box.classList.remove('is-visible')});voice.retry.addEventListener('click',()=>{pendingValues=null;voice.manualText.value='';voice.box.classList.remove('is-visible');setListening(false,READY_TEXT)});calculate();
+</script>
 </body>
 </html>
