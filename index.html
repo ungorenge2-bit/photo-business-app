@@ -8,269 +8,60 @@
   <meta name="theme-color" content="#2f5f66">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="撮影距離">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="./icon.svg">
   <style>
-    :root { --bg:#f5f3ef; --panel:#fff; --ink:#182023; --muted:#637174; --line:#d9dedb; --accent:#2f5f66; --accent-dark:#21494f; --accent-soft:#e4eeee; --warn:#a7501c; --bad:#9d2f2f; --good:#27744f; --shadow:0 18px 48px rgba(27,35,36,.12); }
-    * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","YuGothic","Meiryo",sans-serif; background:linear-gradient(120deg,rgba(47,95,102,.12),transparent 42%),var(--bg); color:var(--ink); }
-    main { width:min(1180px,calc(100% - 28px)); margin:0 auto; padding:max(22px,env(safe-area-inset-top)) 0 max(44px,env(safe-area-inset-bottom)); }
-    header { margin-bottom:18px; }
-    h1 { margin:0 0 8px; font-size:clamp(28px,5vw,46px); line-height:1.16; letter-spacing:0; }
-    h2 { margin:0 0 12px; font-size:20px; }
-    .lead { margin:0; color:var(--muted); font-size:16px; line-height:1.7; }
-    .layout { display:grid; grid-template-columns:360px minmax(0,1fr); gap:18px; align-items:start; }
-    .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow); }
-    .controls, .voice-card { padding:18px; }
-    .voice-card { margin-bottom:18px; }
-    .field { padding:14px 0; border-bottom:1px solid var(--line); }
-    .field:first-child { padding-top:0; }
-    .field:last-child { border-bottom:0; padding-bottom:0; }
-    label { display:block; font-weight:700; font-size:14px; margin-bottom:6px; }
-    .hint { color:var(--muted); font-size:12px; line-height:1.5; }
-    input, select, textarea { width:100%; min-height:46px; border:1px solid #bbc7c4; border-radius:6px; padding:10px 12px; font-size:18px; color:var(--ink); background:#fff; }
-    textarea { min-height:88px; font-size:15px; line-height:1.5; resize:vertical; }
-    input:focus, select:focus, textarea:focus { outline:3px solid rgba(47,95,102,.18); border-color:var(--accent); }
-    .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .unit { position:relative; }
-    .unit span { position:absolute; right:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px; pointer-events:none; }
-    .unit input { padding-right:48px; }
-    button { min-height:46px; border:0; border-radius:6px; padding:0 16px; font-size:15px; font-weight:700; cursor:pointer; }
-    button:disabled { opacity:.55; cursor:not-allowed; }
-    .primary { color:#fff; background:var(--accent); }
-    .primary:hover { background:var(--accent-dark); }
-    .secondary { color:var(--ink); background:var(--accent-soft); }
-    .danger { color:#fff; background:var(--bad); display:none; }
-    .danger.is-visible { display:inline-flex; align-items:center; }
-    .voice-top { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .voice-status { color:var(--muted); font-weight:700; }
-    .voice-box { display:none; margin-top:12px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
-    .voice-box.is-visible { display:block; }
-    .voice-section { padding:12px; border-bottom:1px solid var(--line); }
-    .voice-section:last-child { border-bottom:0; }
-    .voice-section p { margin:0 0 8px; color:var(--muted); font-size:13px; }
-    .parsed-list { margin:0; padding-left:18px; line-height:1.7; }
-    .voice-actions { display:flex; gap:10px; flex-wrap:wrap; }
-    .unsupported { display:none; margin-top:10px; padding:10px; border-left:4px solid var(--warn); background:#fff5ea; color:#65310f; font-size:13px; line-height:1.5; }
-    .unsupported.is-visible { display:block; }
-    .shot-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
-    .shot-button, .mode-button, .orientation-button { min-height:48px; border:1px solid #c7d2d0; border-radius:6px; padding:8px 10px; background:#fff; color:var(--ink); font-weight:700; font-size:14px; text-align:center; cursor:pointer; }
-    .shot-button.is-active, .mode-button.is-active, .orientation-button.is-active { border-color:var(--accent); background:var(--accent); color:#fff; }
-    .mode-buttons, .orientation-buttons { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
-    .orientation-buttons { grid-template-columns:1fr 1fr 1fr; }
-    details { margin-top:12px; border:1px solid var(--line); border-radius:8px; background:#fafbf9; overflow:hidden; }
-    summary { padding:12px; cursor:pointer; font-weight:700; }
-    .settings-grid { display:grid; gap:10px; padding:0 12px 12px; }
-    .setting-row { display:grid; grid-template-columns:1fr 74px 74px 74px; gap:6px; align-items:center; }
-    .setting-row strong { font-size:12px; }
-    .setting-row input { min-height:36px; padding:6px; font-size:14px; }
-    .setting-head { color:var(--muted); font-size:11px; font-weight:700; }
-    .result-panel { overflow:hidden; }
-    .hero-result { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:14px; align-items:center; padding:20px; color:#fff; background:#17282b; }
-    .hero-result p { margin:0 0 6px; color:rgba(255,255,255,.72); font-size:13px; }
-    .hero-result strong { display:block; font-size:clamp(30px,7vw,56px); line-height:1; letter-spacing:0; }
-    .badge { display:inline-flex; align-items:center; min-height:34px; padding:0 12px; border-radius:999px; background:rgba(255,255,255,.12); font-weight:700; white-space:nowrap; }
-    .shot-info { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); }
-    .info-box { padding:16px; background:#fff; }
-    .info-box dt { margin:0 0 6px; color:var(--muted); font-size:12px; }
-    .info-box dd { margin:0; font-size:18px; font-weight:800; }
-    .description { padding:16px 20px; border-top:1px solid var(--line); line-height:1.7; color:#344044; }
-    .table-wrap { overflow-x:auto; border-top:1px solid var(--line); }
-    table { width:100%; min-width:840px; border-collapse:collapse; font-size:14px; }
-    th, td { padding:12px 10px; border-bottom:1px solid var(--line); text-align:right; vertical-align:top; white-space:nowrap; }
-    th:first-child, td:first-child, th:last-child, td:last-child { text-align:left; }
-    th { color:var(--muted); font-size:12px; background:#f8faf8; }
-    td small { display:block; margin-top:4px; color:var(--muted); font-size:11px; white-space:normal; }
-    .judge { display:inline-block; padding:5px 8px; border-radius:999px; font-weight:700; font-size:12px; background:var(--accent-soft); color:var(--accent-dark); }
-    .judge.good { background:#e6f3ec; color:var(--good); }
-    .judge.warn { background:#fff2e7; color:var(--warn); }
-    .notes { margin-top:18px; padding:16px 18px; line-height:1.75; color:#3f4b4f; }
-    .notes p { margin:0; }
-    @media (max-width:860px) { main { width:min(100% - 20px,620px); } .layout { grid-template-columns:1fr; } .hero-result { grid-template-columns:1fr; } .shot-info { grid-template-columns:1fr; } .setting-row { grid-template-columns:1fr 62px 62px 62px; } }
+    :root{--bg:#f5f3ef;--panel:#fff;--ink:#182023;--muted:#637174;--line:#d9dedb;--accent:#2f5f66;--accent-dark:#21494f;--soft:#e4eeee;--warn:#a7501c;--bad:#9d2f2f;--good:#27744f;--shadow:0 18px 48px rgba(27,35,36,.12)}*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","YuGothic","Meiryo",sans-serif;background:linear-gradient(120deg,rgba(47,95,102,.12),transparent 42%),var(--bg);color:var(--ink)}main{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:max(22px,env(safe-area-inset-top)) 0 max(44px,env(safe-area-inset-bottom))}header{margin-bottom:18px}h1{margin:0 0 8px;font-size:clamp(28px,5vw,46px);line-height:1.16;letter-spacing:0}h2{margin:0 0 12px;font-size:20px}.lead{margin:0;color:var(--muted);font-size:16px;line-height:1.7}.layout{display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;align-items:start}.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow)}.controls,.voice-card{padding:18px}.voice-card{margin-bottom:18px}.field{padding:14px 0;border-bottom:1px solid var(--line)}.field:first-child{padding-top:0}.field:last-child{border-bottom:0;padding-bottom:0}label{display:block;font-weight:700;font-size:14px;margin-bottom:6px}.hint{color:var(--muted);font-size:12px;line-height:1.5}input,select,textarea{width:100%;min-height:46px;border:1px solid #bbc7c4;border-radius:6px;padding:10px 12px;font-size:18px;color:var(--ink);background:#fff}textarea{min-height:88px;font-size:15px;line-height:1.5;resize:vertical}input:focus,select:focus,textarea:focus{outline:3px solid rgba(47,95,102,.18);border-color:var(--accent)}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.unit{position:relative}.unit span{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}.unit input{padding-right:48px}button{min-height:46px;border:0;border-radius:6px;padding:0 16px;font-size:15px;font-weight:700;cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}.primary{color:#fff;background:var(--accent)}.primary:hover{background:var(--accent-dark)}.secondary{color:var(--ink);background:var(--soft)}.danger{color:#fff;background:var(--bad);display:none}.danger.is-visible{display:inline-flex;align-items:center}.voice-top{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.voice-status{color:var(--muted);font-weight:700}.voice-box{display:none;margin-top:12px;border:1px solid var(--line);border-radius:8px;overflow:hidden}.voice-box.is-visible{display:block}.voice-section{padding:12px;border-bottom:1px solid var(--line)}.voice-section:last-child{border-bottom:0}.voice-section p{margin:0 0 8px;color:var(--muted);font-size:13px}.parsed-list{margin:0;padding-left:18px;line-height:1.7}.voice-actions{display:flex;gap:10px;flex-wrap:wrap}.unsupported{margin-top:10px;padding:10px;border-left:4px solid var(--warn);background:#fff5ea;color:#65310f;font-size:13px;line-height:1.5}.shot-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.shot-button,.mode-button,.orientation-button{min-height:48px;border:1px solid #c7d2d0;border-radius:6px;padding:8px 10px;background:#fff;color:var(--ink);font-weight:700;font-size:14px;text-align:center;cursor:pointer}.shot-button.is-active,.mode-button.is-active,.orientation-button.is-active{border-color:var(--accent);background:var(--accent);color:#fff}.mode-buttons,.orientation-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.orientation-buttons{grid-template-columns:1fr 1fr 1fr}details{margin-top:12px;border:1px solid var(--line);border-radius:8px;background:#fafbf9;overflow:hidden}summary{padding:12px;cursor:pointer;font-weight:700}.settings-grid{display:grid;gap:10px;padding:0 12px 12px}.setting-row{display:grid;grid-template-columns:1fr 74px 74px 74px;gap:6px;align-items:center}.setting-row strong{font-size:12px}.setting-row input{min-height:36px;padding:6px;font-size:14px}.setting-head{color:var(--muted);font-size:11px;font-weight:700}.result-panel{overflow:hidden}.hero-result{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:20px;color:#fff;background:#17282b}.hero-result p{margin:0 0 6px;color:rgba(255,255,255,.72);font-size:13px}.hero-result strong{display:block;font-size:clamp(30px,7vw,56px);line-height:1;letter-spacing:0}.badge{display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.12);font-weight:700;white-space:nowrap}.shot-info{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}.info-box{padding:16px;background:#fff}.info-box dt{margin:0 0 6px;color:var(--muted);font-size:12px}.info-box dd{margin:0;font-size:18px;font-weight:800}.description{padding:16px 20px;border-top:1px solid var(--line);line-height:1.7;color:#344044}.table-wrap{overflow-x:auto;border-top:1px solid var(--line)}table{width:100%;min-width:840px;border-collapse:collapse;font-size:14px}th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top;white-space:nowrap}th:first-child,td:first-child,th:last-child,td:last-child{text-align:left}th{color:var(--muted);font-size:12px;background:#f8faf8}td small{display:block;margin-top:4px;color:var(--muted);font-size:11px;white-space:normal}.judge{display:inline-block;padding:5px 8px;border-radius:999px;font-weight:700;font-size:12px;background:var(--soft);color:var(--accent-dark)}.judge.good{background:#e6f3ec;color:var(--good)}.judge.warn{background:#fff2e7;color:var(--warn)}.notes{margin-top:18px;padding:16px 18px;line-height:1.75;color:#3f4b4f}.notes p{margin:0}@media(max-width:860px){main{width:min(100% - 20px,620px)}.layout{grid-template-columns:1fr}.hero-result{grid-template-columns:1fr}.shot-info{grid-template-columns:1fr}.setting-row{grid-template-columns:1fr 62px 62px 62px}}
   </style>
 </head>
 <body>
-  <main>
-    <header>
-      <h1>撮影サイズ別 距離計算</h1>
-      <p class="lead">人物の身長、撮影サイズ、レンズ焦点距離から、縦位置・横位置それぞれの必要距離を計算します。</p>
-    </header>
-
-    <section class="panel voice-card" aria-label="音声入力">
-      <div class="voice-top">
-        <button class="primary" id="voiceButton" type="button">🎙 音声で入力</button>
-        <button class="danger" id="stopVoiceButton" type="button">停止</button>
-        <button class="secondary" id="parseTextButton" type="button">文章を解析</button>
-        <span class="voice-status" id="voiceStatus">基本は下の文章入力欄に入力して「文章を解析」を押してください</span>
-      </div>
-      <div class="unsupported" id="unsupportedMessage">このブラウザでは音声入力ボタンが使えない可能性があります。アプリ内マイクではなく、下の文章入力欄をタップしてiPhoneキーボードのマイク入力を使ってください。</div>
-      <div class="field" style="border-bottom:0;margin-top:12px;padding-bottom:0">
-        <label for="manualSpeechText">文章入力欄</label>
-        <textarea id="manualSpeechText" placeholder="例：身長170、全身、35ミリ、部屋4メートル\n例：160センチ、バストアップ、85ミリ\n例：150センチ、アップ、135ミリ、縦位置"></textarea>
-        <div class="hint">iPhoneキーボードのマイクでここへ話してから「文章を解析」でも使えます。</div>
-      </div>
-      <div class="voice-box" id="voiceBox">
-        <div class="voice-section"><p>聞き取った内容：</p><strong id="transcriptText"></strong></div>
-        <div class="voice-section"><p>反映する内容：</p><ul class="parsed-list" id="parsedList"></ul></div>
-        <div class="voice-section voice-actions">
-          <button class="primary" id="applyVoiceButton" type="button">この内容で反映</button>
-          <button class="secondary" id="retryVoiceButton" type="button">やり直す</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="layout" aria-label="撮影距離計算アプリ">
-      <aside class="panel controls">
-        <div class="field"><label for="heightCm">人物の身長</label><div class="unit"><input id="heightCm" type="number" min="80" max="230" step="1" value="170" inputmode="numeric"><span>cm</span></div></div>
-        <div class="field"><label>撮影サイズ</label><div class="hint">iPhoneでも押しやすいよう、ボタンで選べます。</div><div class="shot-grid" id="shotButtons"></div></div>
-        <div class="field">
-          <div class="two">
-            <div><label for="lensMm">比較用レンズ</label><div class="unit"><input id="lensMm" type="number" min="10" max="400" step="1" value="85" inputmode="numeric"><span>mm</span></div></div>
-            <div><label for="roomDepthM">部屋の奥行き</label><div class="unit"><input id="roomDepthM" type="number" min="1" max="30" step="0.1" value="4.0" inputmode="decimal"><span>m</span></div></div>
-          </div>
-          <div class="hint">判定用です。部屋の奥行きは、被写体からカメラ後方の余裕まで含めた目安として使います。</div>
-        </div>
-        <div class="field"><label>撮影向き</label><div class="orientation-buttons"><button class="orientation-button is-active" type="button" data-orientation="both">両方</button><button class="orientation-button" type="button" data-orientation="portrait">縦位置</button><button class="orientation-button" type="button" data-orientation="landscape">横位置</button></div></div>
-        <div class="field"><label>表示モード</label><div class="mode-buttons"><button class="mode-button is-active" type="button" data-mode="lens">レンズ比較</button><button class="mode-button" type="button" data-mode="shot">撮影サイズ比較</button></div></div>
-        <details><summary>詳細設定：比率と余白</summary><div class="settings-grid" id="manualSettings"><div class="setting-row setting-head"><span>撮影サイズ</span><span>比率%</span><span>頭上cm</span><span>下側cm</span></div></div></details>
-      </aside>
-
-      <section class="panel result-panel">
-        <div class="hero-result"><div><p id="resultLabel">選択中の撮影サイズ</p><strong id="mainDistance">0.00m</strong></div><span class="badge" id="modeBadge">レンズ比較</span></div>
-        <dl class="shot-info"><div class="info-box"><dt>写したい高さ</dt><dd id="targetHeight">0cm</dd></div><div class="info-box"><dt>余白込みの必要高さ</dt><dd id="neededHeight">0cm</dd></div><div class="info-box"><dt>縦位置の写る横幅</dt><dd id="portraitWidth">0cm</dd></div><div class="info-box"><dt>横位置の写る横幅</dt><dd id="landscapeWidth">0cm</dd></div></dl>
-        <div class="description" id="shotDescription"></div>
-        <div class="table-wrap"><table><thead><tr><th>撮影サイズ</th><th>レンズ</th><th>縦位置距離</th><th>横位置距離</th><th>写る高さ</th><th>写る横幅</th><th>必要な部屋の奥行き</th><th>判定</th></tr></thead><tbody id="resultRows"></tbody></table></div>
-      </section>
-    </section>
-
-    <section class="panel notes"><h2>注意書き</h2><p>バストアップ、ミディアム、ニーショットなどの範囲は、撮影現場やカメラマンによって多少解釈が変わります。このアプリでは、身長に対する比率で簡易計算しています。実際の撮影では、顔の大きさ、姿勢、髪型、衣装、手の位置、構図の余白によって必要距離が変わります。</p></section>
-  </main>
-
-  <script>
-    const SENSOR = { portrait:{height:36,width:24}, landscape:{height:24,width:36} };
-    const LENSES = [24,35,50,85,135,200];
-    const CAMERA_BACK_MARGIN_M = 1.0;
-    const SHOTS = [
-      { id:"full", name:"全身", ratio:100, top:10, bottom:10, description:"頭から足先まで入る構図。成人式、学校写真、プロフィール全身、ファッション撮影などで使います。" },
-      { id:"knee", name:"ニーショット", ratio:75, top:8, bottom:8, description:"頭から膝あたりまで入る構図。全身より寄った印象で、人物の雰囲気と服装の両方を見せやすい撮影サイズです。" },
-      { id:"medium", name:"ミディアムショット", ratio:60, top:7, bottom:7, description:"頭から腰、または太もも上あたりまで入る構図。企業プロフィール、インタビュー、人物紹介で使いやすい撮影サイズです。" },
-      { id:"middle", name:"ミドルショット", ratio:50, top:6, bottom:6, description:"このアプリでは頭から腰あたりまでの構図として扱います。ミディアムショットより少し上半身寄りの構図です。" },
-      { id:"bust", name:"バストアップ", ratio:35, top:5, bottom:5, description:"頭から胸あたりまで入る構図。プロフィール写真、宣材写真、インタビュー写真でよく使います。" },
-      { id:"close", name:"アップ", ratio:25, top:4, bottom:4, description:"顔から肩まわりまで入る構図。表情をしっかり見せたい時に使います。" },
-      { id:"face", name:"顔アップ", ratio:18, top:3, bottom:3, description:"顔中心のかなり寄った構図。証明写真風、表情重視、SNSアイコンなどで使います。" }
-    ];
-    const SHOT_WORDS = [
-      ["顔アップ","face"],["顔","face"],["バストアップ","bust"],["バスト","bust"],["ニーショット","knee"],["膝上","knee"],["ニー","knee"],["ミディアムショット","medium"],["ミディアム","medium"],["ミドルショット","middle"],["ミドル","middle"],["全身","full"],["アップ","close"]
-    ];
-    const state = { shotId:"full", mode:"lens", orientation:"both" };
-    const el = {
-      heightCm:document.getElementById("heightCm"), lensMm:document.getElementById("lensMm"), roomDepthM:document.getElementById("roomDepthM"), shotButtons:document.getElementById("shotButtons"), manualSettings:document.getElementById("manualSettings"), resultLabel:document.getElementById("resultLabel"), mainDistance:document.getElementById("mainDistance"), modeBadge:document.getElementById("modeBadge"), targetHeight:document.getElementById("targetHeight"), neededHeight:document.getElementById("neededHeight"), portraitWidth:document.getElementById("portraitWidth"), landscapeWidth:document.getElementById("landscapeWidth"), shotDescription:document.getElementById("shotDescription"), resultRows:document.getElementById("resultRows")
-    };
-    const voice = {
-      button:document.getElementById("voiceButton"), stop:document.getElementById("stopVoiceButton"), parseText:document.getElementById("parseTextButton"), status:document.getElementById("voiceStatus"), unsupported:document.getElementById("unsupportedMessage"), manualText:document.getElementById("manualSpeechText"), box:document.getElementById("voiceBox"), transcript:document.getElementById("transcriptText"), parsedList:document.getElementById("parsedList"), apply:document.getElementById("applyVoiceButton"), retry:document.getElementById("retryVoiceButton")
-    };
-    const READY_TEXT = "基本は下の文章入力欄に入力して「文章を解析」を押してください";
-    const TIMEOUT_TEXT = "音声入力を終了しました。うまく聞き取れない場合は、下の文章入力欄に入力してください";
-    let pendingValues = null;
-    let listening = false;
-    let recognition = null;
-    let voiceTimer = null;
-
-    function number(input, fallback) { const value = Number(input.value); return Number.isFinite(value) && value > 0 ? value : fallback; }
-    function fmtM(value) { return `${value.toFixed(2)}m`; }
-    function fmtCm(value) { return `${Math.round(value)}cm`; }
-    function shotById(id) { return SHOTS.find((shot) => shot.id === id) || SHOTS[0]; }
-    function setListening(active, message) { listening = active; voice.button.disabled = active; voice.stop.classList.toggle("is-visible", active); voice.status.textContent = message || (active ? "聞き取り中です" : READY_TEXT); if (!active && voiceTimer) { clearTimeout(voiceTimer); voiceTimer = null; } }
-    function finishListening(message) { setListening(false, message || READY_TEXT); }
-    function safeStopRecognition(message) { if (!listening) { finishListening(message); return; } try { recognition && recognition.stop(); } catch (error) { try { recognition && recognition.abort(); } catch (_) {} } finishListening(message); }
-    function normalizeText(text) { return text.replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)).replace(/センチ/g,"cm").replace(/ミリ/g,"mm").replace(/メートル/g,"m").replace(/膝/g,"膝").toLowerCase(); }
-    function matchNumber(text, patterns) { for (const pattern of patterns) { const found = text.match(pattern); if (found) return Number(found[1]); } return null; }
-    function parseSpeech(text) {
-      const normalized = normalizeText(text);
-      const values = {};
-      const height = matchNumber(normalized, [/(?:身長\s*)?([0-9]+)\s*(?:cm|ｃｍ|センチ)/, /身長\s*([0-9]+)/]);
-      const lens = matchNumber(normalized, [/(?:レンズ\s*)?([0-9]+)\s*(?:mm|ｍｍ)/, /レンズ\s*([0-9]+)/]);
-      const room = matchNumber(normalized, [/(?:部屋|奥行き|会場)\s*([0-9]+(?:\.[0-9]+)?)\s*(?:m|ｍ)?/, /([0-9]+(?:\.[0-9]+)?)\s*m/]);
-      const margin = matchNumber(normalized, [/余白\s*([0-9]+)\s*(?:cm|センチ)?/]);
-      const top = matchNumber(normalized, [/(?:頭上|上)\s*([0-9]+)\s*(?:cm|センチ)?/]);
-      const bottom = matchNumber(normalized, [/(?:足元|下)\s*([0-9]+)\s*(?:cm|センチ)?/]);
-      if (height) values.heightCm = height;
-      for (const [word, id] of SHOT_WORDS) { if (normalized.includes(word)) { values.shotId = id; break; } }
-      if (lens) values.lensMm = lens;
-      if (room) values.roomDepthM = room;
-      if (margin !== null) { values.topMargin = margin; values.bottomMargin = margin; }
-      if (top !== null) values.topMargin = top;
-      if (bottom !== null) values.bottomMargin = bottom;
-      if (normalized.includes("両方")) values.orientation = "both";
-      else if (normalized.includes("縦位置") || normalized.includes("縦")) values.orientation = "portrait";
-      else if (normalized.includes("横位置") || normalized.includes("横")) values.orientation = "landscape";
-      return values;
-    }
-    function labelFor(key, value) {
-      const labels = { heightCm:`身長：${value}cm`, shotId:`撮影サイズ：${shotById(value).name}`, lensMm:`レンズ：${value}mm`, roomDepthM:`部屋の奥行き：${value}m`, topMargin:`頭上余白：${value}cm`, bottomMargin:`下側余白：${value}cm`, orientation:`撮影向き：${value === "portrait" ? "縦位置" : value === "landscape" ? "横位置" : "両方"}` };
-      return labels[key] || `${key}: ${value}`;
-    }
-    function showParsed(text, values) { pendingValues = values; voice.transcript.textContent = `「${text}」`; const entries = Object.entries(values); voice.parsedList.innerHTML = entries.length ? entries.map(([k,v]) => `<li>${labelFor(k,v)}</li>`).join("") : "<li>読み取れる項目がありませんでした。文章を少し変えてください。</li>"; voice.box.classList.add("is-visible"); }
-    function applyParsed(values) {
-      if (values.heightCm) el.heightCm.value = String(values.heightCm);
-      if (values.shotId) state.shotId = values.shotId;
-      if (values.lensMm) el.lensMm.value = String(values.lensMm);
-      if (values.roomDepthM) el.roomDepthM.value = String(values.roomDepthM);
-      if (values.orientation) state.orientation = values.orientation;
-      const shot = shotById(state.shotId);
-      if (values.topMargin !== undefined) shot.top = Number(values.topMargin);
-      if (values.bottomMargin !== undefined) shot.bottom = Number(values.bottomMargin);
-      renderSettings();
-      render();
-      renderOrientationButtons();
-    }
-    function metrics(shot, lensMm) {
-      const heightCm = number(el.heightCm, 170); const targetHeightCm = heightCm * (shot.ratio / 100); const neededHeightCm = targetHeightCm + shot.top + shot.bottom; const neededHeightMm = neededHeightCm * 10; const portraitDistanceM = (lensMm * neededHeightMm / SENSOR.portrait.height) / 1000; const landscapeDistanceM = (lensMm * neededHeightMm / SENSOR.landscape.height) / 1000; const portraitWidthCm = neededHeightCm * SENSOR.portrait.width / SENSOR.portrait.height; const landscapeWidthCm = neededHeightCm * SENSOR.landscape.width / SENSOR.landscape.height; const requiredRoomM = Math.max(portraitDistanceM, landscapeDistanceM) + CAMERA_BACK_MARGIN_M; return { targetHeightCm, neededHeightCm, portraitDistanceM, landscapeDistanceM, portraitWidthCm, landscapeWidthCm, requiredRoomM };
-    }
-    function judge(shot, lensMm, requiredRoomM) {
-      const roomDepth = number(el.roomDepthM, 4); let text = "標準的"; let tone = "";
-      if (shot.id === "full") { if (lensMm <= 35) text = "室内でも撮りやすいが広角感に注意"; else if (lensMm <= 50) text = "自然な全身撮影に使いやすい"; else text = "広い場所が必要"; }
-      else if (shot.id === "bust") { if (lensMm <= 50) text = "室内で使いやすい"; else if (lensMm <= 85) text = "プロフィール・宣材写真に使いやすい"; else text = "背景を整理しやすいが距離が必要"; }
-      else if (shot.id === "close" || shot.id === "face") { if (lensMm <= 85) text = "表情を自然に撮りやすい"; else if (lensMm <= 135) text = "圧縮感が出て背景を整理しやすい"; else text = "広い場所向き"; }
-      else if (shot.id === "knee") text = lensMm <= 50 ? "室内向き" : "人物の雰囲気を出しやすい";
-      else text = lensMm <= 85 ? "企業プロフィールに使いやすい" : "背景整理向き";
-      if (requiredRoomM > roomDepth) { text = `${text} / 奥行き不足`; tone = "warn"; } else if (requiredRoomM <= roomDepth - 0.8) tone = "good";
-      return { text, tone };
-    }
-    function renderButtons() { el.shotButtons.innerHTML = SHOTS.map((shot) => `<button class="shot-button${shot.id === state.shotId ? " is-active" : ""}" type="button" data-shot="${shot.id}">${shot.name}</button>`).join(""); document.querySelectorAll("[data-shot]").forEach((button) => button.addEventListener("click", () => { state.shotId = button.dataset.shot; render(); })); }
-    function renderOrientationButtons() { document.querySelectorAll("[data-orientation]").forEach((item) => item.classList.toggle("is-active", item.dataset.orientation === state.orientation)); renderResults(); }
-    function renderSettings() { const rows = SHOTS.map((shot) => `<div class="setting-row"><strong>${shot.name}</strong><input type="number" min="5" max="120" step="1" value="${shot.ratio}" data-setting="ratio" data-shot-id="${shot.id}" aria-label="${shot.name} 比率"><input type="number" min="0" max="50" step="1" value="${shot.top}" data-setting="top" data-shot-id="${shot.id}" aria-label="${shot.name} 頭上余白"><input type="number" min="0" max="50" step="1" value="${shot.bottom}" data-setting="bottom" data-shot-id="${shot.id}" aria-label="${shot.name} 下側余白"></div>`).join(""); el.manualSettings.innerHTML = `<div class="setting-row setting-head"><span>撮影サイズ</span><span>比率%</span><span>頭上cm</span><span>下側cm</span></div>${rows}`; el.manualSettings.querySelectorAll("input").forEach((input) => input.addEventListener("input", () => { const shot = shotById(input.dataset.shotId); const value = Number(input.value); if (Number.isFinite(value)) shot[input.dataset.setting] = value; renderResults(); })); }
-    function row(shot, lensMm) { const m = metrics(shot, lensMm); const j = judge(shot, lensMm, m.requiredRoomM); const portrait = state.orientation !== "landscape" ? fmtM(m.portraitDistanceM) : "-"; const landscape = state.orientation !== "portrait" ? fmtM(m.landscapeDistanceM) : "-"; return `<tr><td>${shot.name}<small>${shot.ratio}% / 上${shot.top}cm 下${shot.bottom}cm</small></td><td>${lensMm}mm</td><td>${portrait}</td><td>${landscape}</td><td>${fmtCm(m.neededHeightCm)}<small>人物範囲 ${fmtCm(m.targetHeightCm)}</small></td><td>縦 ${fmtCm(m.portraitWidthCm)}<small>横 ${fmtCm(m.landscapeWidthCm)}</small></td><td>${fmtM(m.requiredRoomM)}<small>距離 + 後方余裕 ${CAMERA_BACK_MARGIN_M.toFixed(1)}m</small></td><td><span class="judge ${j.tone}">${j.text}</span></td></tr>`; }
-    function renderResults() {
-      const selectedShot = shotById(state.shotId); const lens = Math.round(number(el.lensMm, 85)); const main = metrics(selectedShot, lens); const mainValue = state.orientation === "landscape" ? main.landscapeDistanceM : main.portraitDistanceM; const orientationLabel = state.orientation === "portrait" ? "縦位置" : state.orientation === "landscape" ? "横位置" : "縦位置";
-      el.resultLabel.textContent = `${selectedShot.name} / ${lens}mm / ${orientationLabel}距離`; el.mainDistance.textContent = fmtM(mainValue); el.modeBadge.textContent = state.mode === "lens" ? "レンズ比較" : "撮影サイズ比較"; el.targetHeight.textContent = fmtCm(main.targetHeightCm); el.neededHeight.textContent = fmtCm(main.neededHeightCm); el.portraitWidth.textContent = fmtCm(main.portraitWidthCm); el.landscapeWidth.textContent = fmtCm(main.landscapeWidthCm); el.shotDescription.textContent = selectedShot.description;
-      el.resultRows.innerHTML = state.mode === "lens" ? LENSES.map((lensMm) => row(selectedShot, lensMm)).join("") : SHOTS.map((shot) => row(shot, lens)).join("");
-    }
-    function render() { renderButtons(); renderResults(); }
-
-    document.querySelectorAll("[data-mode]").forEach((button) => button.addEventListener("click", () => { state.mode = button.dataset.mode; document.querySelectorAll("[data-mode]").forEach((item) => item.classList.toggle("is-active", item.dataset.mode === state.mode)); renderResults(); }));
-    document.querySelectorAll("[data-orientation]").forEach((button) => button.addEventListener("click", () => { state.orientation = button.dataset.orientation; renderOrientationButtons(); }));
-    [el.heightCm, el.lensMm, el.roomDepthM].forEach((input) => input.addEventListener("input", renderResults));
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) { voice.button.disabled = true; voice.unsupported.classList.add("is-visible"); finishListening(READY_TEXT); }
-    else {
-      recognition = new SpeechRecognition(); recognition.lang = "ja-JP"; recognition.interimResults = false; recognition.continuous = false;
-      voice.button.addEventListener("click", () => { if (listening) return; setListening(true, "聞き取り中です"); voiceTimer = window.setTimeout(() => safeStopRecognition(TIMEOUT_TEXT), 10000); try { recognition.start(); } catch (error) { finishListening("音声入力を開始できませんでした。下の文章入力欄を使ってください"); voice.unsupported.classList.add("is-visible"); } });
-      voice.stop.addEventListener("click", () => safeStopRecognition(TIMEOUT_TEXT));
-      recognition.onresult = (event) => { const text = event.results && event.results[0] && event.results[0][0] ? event.results[0][0].transcript : ""; if (text) { voice.manualText.value = text; showParsed(text, parseSpeech(text)); finishListening("聞き取りが完了しました"); } else finishListening(TIMEOUT_TEXT); };
-      recognition.onspeechend = () => safeStopRecognition("音声入力を終了しました");
-      recognition.onerror = () => { voice.unsupported.classList.add("is-visible"); finishListening("音声入力に失敗しました。下の文章入力欄かiPhoneキーボードのマイク入力を使ってください"); };
-      recognition.onend = () => { if (listening) finishListening(TIMEOUT_TEXT); else setListening(false, voice.status.textContent || READY_TEXT); };
-    }
-    voice.parseText.addEventListener("click", () => { const text = voice.manualText.value.trim(); if (text) showParsed(text, parseSpeech(text)); });
-    voice.apply.addEventListener("click", () => { if (pendingValues) applyParsed(pendingValues); voice.box.classList.remove("is-visible"); });
-    voice.retry.addEventListener("click", () => { pendingValues = null; voice.manualText.value = ""; voice.box.classList.remove("is-visible"); finishListening(READY_TEXT); });
-
-    renderSettings(); render(); renderOrientationButtons();
-    if ("serviceWorker" in navigator && location.protocol === "https:") window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js"));
-  </script>
+<main>
+  <header><h1>撮影サイズ別 距離計算</h1><p class="lead">人物の身長、撮影サイズ、レンズ焦点距離から、縦位置・横位置それぞれの必要距離を計算します。</p></header>
+  <section class="panel voice-card" aria-label="音声入力">
+    <div class="voice-top"><button class="primary" id="voiceButton" type="button">🎙 音声で入力</button><button class="danger" id="stopVoiceButton" type="button">停止</button><button class="secondary" id="parseTextButton" type="button">文章を解析</button><span class="voice-status" id="voiceStatus">基本は下の文章入力欄に入力して「文章を解析」を押してください</span></div>
+    <div class="unsupported" id="unsupportedMessage">iPhoneでは、アプリ内音声入力よりキーボードのマイク入力を推奨します。下の文章入力欄をタップして、iPhoneキーボードのマイクで入力し、「文章を解析」を押してください。</div>
+    <div class="field" style="border-bottom:0;margin-top:12px;padding-bottom:0"><label for="manualSpeechText">文章入力欄</label><textarea id="manualSpeechText" placeholder="例：身長170、全身、35ミリ、部屋4メートル\n例：160センチ、バストアップ、85ミリ\n例：150センチ、アップ、135ミリ、縦位置"></textarea><div class="hint">iPhoneキーボードのマイクでここへ話してから「文章を解析」でも使えます。</div></div>
+    <div class="voice-box" id="voiceBox"><div class="voice-section"><p>聞き取った内容：</p><strong id="transcriptText"></strong></div><div class="voice-section"><p>反映する内容：</p><ul class="parsed-list" id="parsedList"></ul></div><div class="voice-section voice-actions"><button class="primary" id="applyVoiceButton" type="button">この内容で反映</button><button class="secondary" id="retryVoiceButton" type="button">やり直す</button></div></div>
+  </section>
+  <section class="layout" aria-label="撮影距離計算アプリ">
+    <aside class="panel controls">
+      <div class="field"><label for="heightCm">人物の身長</label><div class="unit"><input id="heightCm" type="number" min="80" max="230" step="1" value="170"><span>cm</span></div></div>
+      <div class="field"><label>撮影サイズ</label><div class="hint">iPhoneでも押しやすいよう、ボタンで選べます。</div><div class="shot-grid" id="shotButtons"></div></div>
+      <div class="field"><div class="two"><div><label for="lensMm">比較用レンズ</label><div class="unit"><input id="lensMm" type="number" min="10" max="400" step="1" value="85"><span>mm</span></div></div><div><label for="roomDepthM">部屋の奥行き</label><div class="unit"><input id="roomDepthM" type="number" min="1" max="30" step="0.1" value="4.0"><span>m</span></div></div></div><div class="hint">判定用です。部屋の奥行きは、被写体からカメラ後方の余裕まで含めた目安として使います。</div></div>
+      <div class="field"><label>撮影向き</label><div class="orientation-buttons"><button class="orientation-button is-active" type="button" data-orientation="both">両方</button><button class="orientation-button" type="button" data-orientation="portrait">縦位置</button><button class="orientation-button" type="button" data-orientation="landscape">横位置</button></div></div>
+      <div class="field"><label>表示モード</label><div class="mode-buttons"><button class="mode-button is-active" type="button" data-mode="lens">レンズ比較</button><button class="mode-button" type="button" data-mode="shot">撮影サイズ比較</button></div></div>
+      <details><summary>詳細設定：比率と余白</summary><div class="settings-grid" id="manualSettings"><div class="setting-row setting-head"><span>撮影サイズ</span><span>比率%</span><span>頭上cm</span><span>下側cm</span></div></div></details>
+    </aside>
+    <section class="panel result-panel"><div class="hero-result"><div><p id="resultLabel">選択中の撮影サイズ</p><strong id="mainDistance">0.00m</strong></div><span class="badge" id="modeBadge">レンズ比較</span></div><dl class="shot-info"><div class="info-box"><dt>写したい高さ</dt><dd id="targetHeight">0cm</dd></div><div class="info-box"><dt>余白込みの必要高さ</dt><dd id="neededHeight">0cm</dd></div><div class="info-box"><dt>縦位置の写る横幅</dt><dd id="portraitWidth">0cm</dd></div><div class="info-box"><dt>横位置の写る横幅</dt><dd id="landscapeWidth">0cm</dd></div></dl><div class="description" id="shotDescription"></div><div class="table-wrap"><table><thead><tr><th>撮影サイズ</th><th>レンズ</th><th>縦位置距離</th><th>横位置距離</th><th>写る高さ</th><th>写る横幅</th><th>必要な部屋の奥行き</th><th>判定</th></tr></thead><tbody id="resultRows"></tbody></table></div></section>
+  </section>
+  <section class="panel notes"><h2>注意書き</h2><p>バストアップ、ミディアム、ニーショットなどの範囲は、撮影現場やカメラマンによって多少解釈が変わります。このアプリでは、身長に対する比率で簡易計算しています。実際の撮影では、顔の大きさ、姿勢、髪型、衣装、手の位置、構図の余白によって必要距離が変わります。</p></section>
+</main>
+<script>
+const SENSOR={portrait:{height:36,width:24},landscape:{height:24,width:36}},LENSES=[24,35,50,85,135,200],CAMERA_BACK_MARGIN_M=1;
+const SHOTS=[{id:'full',name:'全身',ratio:100,top:10,bottom:10,description:'頭から足先まで入る構図。成人式、学校写真、プロフィール全身、ファッション撮影などで使います。'},{id:'knee',name:'ニーショット',ratio:75,top:8,bottom:8,description:'頭から膝あたりまで入る構図。全身より寄った印象で、人物の雰囲気と服装の両方を見せやすい撮影サイズです。'},{id:'medium',name:'ミディアムショット',ratio:60,top:7,bottom:7,description:'頭から腰、または太もも上あたりまで入る構図。企業プロフィール、インタビュー、人物紹介で使いやすい撮影サイズです。'},{id:'middle',name:'ミドルショット',ratio:50,top:6,bottom:6,description:'このアプリでは頭から腰あたりまでの構図として扱います。ミディアムショットより少し上半身寄りの構図です。'},{id:'bust',name:'バストアップ',ratio:35,top:5,bottom:5,description:'頭から胸あたりまで入る構図。プロフィール写真、宣材写真、インタビュー写真でよく使います。'},{id:'close',name:'アップ',ratio:25,top:4,bottom:4,description:'顔から肩まわりまで入る構図。表情をしっかり見せたい時に使います。'},{id:'face',name:'顔アップ',ratio:18,top:3,bottom:3,description:'顔中心のかなり寄った構図。証明写真風、表情重視、SNSアイコンなどで使います。'}];
+const SHOT_WORDS=[['顔アップ','face'],['顔','face'],['バストアップ','bust'],['バスト','bust'],['ニーショット','knee'],['膝上','knee'],['ニー','knee'],['ミディアムショット','medium'],['ミディアム','medium'],['ミドルショット','middle'],['ミドル','middle'],['全身','full'],['アップ','close']];
+const state={shotId:'full',mode:'lens',orientation:'both'};
+const el={heightCm:gid('heightCm'),lensMm:gid('lensMm'),roomDepthM:gid('roomDepthM'),shotButtons:gid('shotButtons'),manualSettings:gid('manualSettings'),resultLabel:gid('resultLabel'),mainDistance:gid('mainDistance'),modeBadge:gid('modeBadge'),targetHeight:gid('targetHeight'),neededHeight:gid('neededHeight'),portraitWidth:gid('portraitWidth'),landscapeWidth:gid('landscapeWidth'),shotDescription:gid('shotDescription'),resultRows:gid('resultRows')};
+const voice={button:gid('voiceButton'),stop:gid('stopVoiceButton'),parseText:gid('parseTextButton'),status:gid('voiceStatus'),unsupported:gid('unsupportedMessage'),manualText:gid('manualSpeechText'),box:gid('voiceBox'),transcript:gid('transcriptText'),parsedList:gid('parsedList'),apply:gid('applyVoiceButton'),retry:gid('retryVoiceButton')};
+const READY_TEXT='基本は下の文章入力欄に入力して「文章を解析」を押してください',TIMEOUT_TEXT='音声入力を終了しました。うまく聞き取れない場合は、下の文章入力欄に入力してください';
+let pendingValues=null,listening=false,recognition=null,voiceTimer=null;
+function gid(id){return document.getElementById(id)}function number(input,fallback){const value=Number(input.value);return Number.isFinite(value)&&value>0?value:fallback}function fmtM(value){return `${value.toFixed(2)}m`}function fmtCm(value){return `${Math.round(value)}cm`}function shotById(id){return SHOTS.find(shot=>shot.id===id)||SHOTS[0]}
+function clearVoiceTimer(){if(voiceTimer){clearTimeout(voiceTimer);voiceTimer=null}}function setListening(active,message){listening=active;voice.button.disabled=active;voice.stop.classList.toggle('is-visible',active);voice.status.textContent=message||(active?'聞き取り中です':READY_TEXT);if(!active)clearVoiceTimer()}function stopRecognitionHard(message){clearVoiceTimer();try{recognition&&recognition.stop()}catch(_){}try{recognition&&recognition.abort()}catch(_){}setListening(false,message||READY_TEXT)}
+function normalizeText(text){return text.replace(/[０-９]/g,s=>String.fromCharCode(s.charCodeAt(0)-0xFEE0)).replace(/センチ/g,'cm').replace(/ミリ/g,'mm').replace(/メートル/g,'m').toLowerCase()}function matchNumber(text,patterns){for(const pattern of patterns){const found=text.match(pattern);if(found)return Number(found[1])}return null}
+function parseSpeech(text){const normalized=normalizeText(text),values={};const height=matchNumber(normalized,[/(?:身長\s*)?([0-9]+)\s*(?:cm|ｃｍ|センチ)/,/身長\s*([0-9]+)/]);const lens=matchNumber(normalized,[/(?:レンズ\s*)?([0-9]+)\s*(?:mm|ｍｍ)/,/レンズ\s*([0-9]+)/]);const room=matchNumber(normalized,[/(?:部屋|奥行き|会場)\s*([0-9]+(?:\.[0-9]+)?)\s*(?:m|ｍ)?/,/([0-9]+(?:\.[0-9]+)?)\s*m/]);const margin=matchNumber(normalized,[/余白\s*([0-9]+)\s*(?:cm|センチ)?/]);const top=matchNumber(normalized,[/(?:頭上|上)\s*([0-9]+)\s*(?:cm|センチ)?/]);const bottom=matchNumber(normalized,[/(?:足元|下)\s*([0-9]+)\s*(?:cm|センチ)?/]);if(height)values.heightCm=height;for(const [word,id] of SHOT_WORDS){if(normalized.includes(word)){values.shotId=id;break}}if(lens)values.lensMm=lens;if(room)values.roomDepthM=room;if(margin!==null){values.topMargin=margin;values.bottomMargin=margin}if(top!==null)values.topMargin=top;if(bottom!==null)values.bottomMargin=bottom;if(normalized.includes('両方'))values.orientation='both';else if(normalized.includes('縦位置')||normalized.includes('縦'))values.orientation='portrait';else if(normalized.includes('横位置')||normalized.includes('横'))values.orientation='landscape';return values}
+function labelFor(key,value){const labels={heightCm:`身長：${value}cm`,shotId:`撮影サイズ：${shotById(value).name}`,lensMm:`レンズ：${value}mm`,roomDepthM:`部屋の奥行き：${value}m`,topMargin:`頭上余白：${value}cm`,bottomMargin:`下側余白：${value}cm`,orientation:`撮影向き：${value==='portrait'?'縦位置':value==='landscape'?'横位置':'両方'}`};return labels[key]||`${key}: ${value}`}function showParsed(text,values){pendingValues=values;voice.transcript.textContent=`「${text}」`;const entries=Object.entries(values);voice.parsedList.innerHTML=entries.length?entries.map(([k,v])=>`<li>${labelFor(k,v)}</li>`).join(''):'<li>読み取れる項目がありませんでした。文章を少し変えてください。</li>';voice.box.classList.add('is-visible')}
+function applyParsed(values){if(values.heightCm)el.heightCm.value=String(values.heightCm);if(values.shotId)state.shotId=values.shotId;if(values.lensMm)el.lensMm.value=String(values.lensMm);if(values.roomDepthM)el.roomDepthM.value=String(values.roomDepthM);if(values.orientation)state.orientation=values.orientation;const shot=shotById(state.shotId);if(values.topMargin!==undefined)shot.top=Number(values.topMargin);if(values.bottomMargin!==undefined)shot.bottom=Number(values.bottomMargin);renderSettings();render();renderOrientationButtons()}
+function metrics(shot,lensMm){const heightCm=number(el.heightCm,170),targetHeightCm=heightCm*(shot.ratio/100),neededHeightCm=targetHeightCm+shot.top+shot.bottom,neededHeightMm=neededHeightCm*10,portraitDistanceM=(lensMm*neededHeightMm/SENSOR.portrait.height)/1000,landscapeDistanceM=(lensMm*neededHeightMm/SENSOR.landscape.height)/1000,portraitWidthCm=neededHeightCm*SENSOR.portrait.width/SENSOR.portrait.height,landscapeWidthCm=neededHeightCm*SENSOR.landscape.width/SENSOR.landscape.height,requiredRoomM=Math.max(portraitDistanceM,landscapeDistanceM)+CAMERA_BACK_MARGIN_M;return{targetHeightCm,neededHeightCm,portraitDistanceM,landscapeDistanceM,portraitWidthCm,landscapeWidthCm,requiredRoomM}}
+function judge(shot,lensMm,requiredRoomM){const roomDepth=number(el.roomDepthM,4);let text='標準的',tone='';if(shot.id==='full'){if(lensMm<=35)text='室内でも撮りやすいが広角感に注意';else if(lensMm<=50)text='自然な全身撮影に使いやすい';else text='広い場所が必要'}else if(shot.id==='bust'){if(lensMm<=50)text='室内で使いやすい';else if(lensMm<=85)text='プロフィール・宣材写真に使いやすい';else text='背景を整理しやすいが距離が必要'}else if(shot.id==='close'||shot.id==='face'){if(lensMm<=85)text='表情を自然に撮りやすい';else if(lensMm<=135)text='圧縮感が出て背景を整理しやすい';else text='広い場所向き'}else if(shot.id==='knee')text=lensMm<=50?'室内向き':'人物の雰囲気を出しやすい';else text=lensMm<=85?'企業プロフィールに使いやすい':'背景整理向き';if(requiredRoomM>roomDepth){text=`${text} / 奥行き不足`;tone='warn'}else if(requiredRoomM<=roomDepth-.8)tone='good';return{text,tone}}
+function renderButtons(){el.shotButtons.innerHTML=SHOTS.map(shot=>`<button class="shot-button${shot.id===state.shotId?' is-active':''}" type="button" data-shot="${shot.id}">${shot.name}</button>`).join('');document.querySelectorAll('[data-shot]').forEach(button=>button.addEventListener('click',()=>{state.shotId=button.dataset.shot;render()}))}function renderOrientationButtons(){document.querySelectorAll('[data-orientation]').forEach(item=>item.classList.toggle('is-active',item.dataset.orientation===state.orientation));renderResults()}
+function renderSettings(){const rows=SHOTS.map(shot=>`<div class="setting-row"><strong>${shot.name}</strong><input type="number" min="5" max="120" step="1" value="${shot.ratio}" data-setting="ratio" data-shot-id="${shot.id}" aria-label="${shot.name} 比率"><input type="number" min="0" max="50" step="1" value="${shot.top}" data-setting="top" data-shot-id="${shot.id}" aria-label="${shot.name} 頭上余白"><input type="number" min="0" max="50" step="1" value="${shot.bottom}" data-setting="bottom" data-shot-id="${shot.id}" aria-label="${shot.name} 下側余白"></div>`).join('');el.manualSettings.innerHTML=`<div class="setting-row setting-head"><span>撮影サイズ</span><span>比率%</span><span>頭上cm</span><span>下側cm</span></div>${rows}`;el.manualSettings.querySelectorAll('input').forEach(input=>input.addEventListener('input',()=>{const shot=shotById(input.dataset.shotId),value=Number(input.value);if(Number.isFinite(value))shot[input.dataset.setting]=value;renderResults()}))}
+function row(shot,lensMm){const m=metrics(shot,lensMm),j=judge(shot,lensMm,m.requiredRoomM),portrait=state.orientation!=='landscape'?fmtM(m.portraitDistanceM):'-',landscape=state.orientation!=='portrait'?fmtM(m.landscapeDistanceM):'-';return`<tr><td>${shot.name}<small>${shot.ratio}% / 上${shot.top}cm 下${shot.bottom}cm</small></td><td>${lensMm}mm</td><td>${portrait}</td><td>${landscape}</td><td>${fmtCm(m.neededHeightCm)}<small>人物範囲 ${fmtCm(m.targetHeightCm)}</small></td><td>縦 ${fmtCm(m.portraitWidthCm)}<small>横 ${fmtCm(m.landscapeWidthCm)}</small></td><td>${fmtM(m.requiredRoomM)}<small>距離 + 後方余裕 ${CAMERA_BACK_MARGIN_M.toFixed(1)}m</small></td><td><span class="judge ${j.tone}">${j.text}</span></td></tr>`}
+function renderResults(){const selectedShot=shotById(state.shotId),lens=Math.round(number(el.lensMm,85)),main=metrics(selectedShot,lens),mainValue=state.orientation==='landscape'?main.landscapeDistanceM:main.portraitDistanceM,orientationLabel=state.orientation==='portrait'?'縦位置':state.orientation==='landscape'?'横位置':'縦位置';el.resultLabel.textContent=`${selectedShot.name} / ${lens}mm / ${orientationLabel}距離`;el.mainDistance.textContent=fmtM(mainValue);el.modeBadge.textContent=state.mode==='lens'?'レンズ比較':'撮影サイズ比較';el.targetHeight.textContent=fmtCm(main.targetHeightCm);el.neededHeight.textContent=fmtCm(main.neededHeightCm);el.portraitWidth.textContent=fmtCm(main.portraitWidthCm);el.landscapeWidth.textContent=fmtCm(main.landscapeWidthCm);el.shotDescription.textContent=selectedShot.description;el.resultRows.innerHTML=state.mode==='lens'?LENSES.map(lensMm=>row(selectedShot,lensMm)).join(''):SHOTS.map(shot=>row(shot,lens)).join('')}
+function render(){renderButtons();renderResults()}
+document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{state.mode=button.dataset.mode;document.querySelectorAll('[data-mode]').forEach(item=>item.classList.toggle('is-active',item.dataset.mode===state.mode));renderResults()}));document.querySelectorAll('[data-orientation]').forEach(button=>button.addEventListener('click',()=>{state.orientation=button.dataset.orientation;renderOrientationButtons()}));[el.heightCm,el.lensMm,el.roomDepthM].forEach(input=>input.addEventListener('input',renderResults));
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SpeechRecognition){voice.button.disabled=true;setListening(false,READY_TEXT)}else{recognition=new SpeechRecognition();recognition.lang='ja-JP';recognition.interimResults=false;recognition.continuous=false;voice.button.addEventListener('click',()=>{if(listening)return;setListening(true,'聞き取り中です');voiceTimer=window.setTimeout(()=>stopRecognitionHard(TIMEOUT_TEXT),10000);try{recognition.start()}catch(_){stopRecognitionHard('音声入力を開始できませんでした。下の文章入力欄を使ってください')}});voice.stop.addEventListener('click',()=>stopRecognitionHard(TIMEOUT_TEXT));recognition.onresult=event=>{const text=event.results&&event.results[0]&&event.results[0][0]?event.results[0][0].transcript:'';if(text){voice.manualText.value=text;showParsed(text,parseSpeech(text));stopRecognitionHard('聞き取りが完了しました')}else stopRecognitionHard(TIMEOUT_TEXT)};recognition.onspeechend=()=>stopRecognitionHard('音声入力を終了しました');recognition.onerror=()=>stopRecognitionHard('音声入力に失敗しました。下の文章入力欄かiPhoneキーボードのマイク入力を使ってください');recognition.onend=()=>setListening(false,voice.status.textContent&&voice.status.textContent!=='聞き取り中です'?voice.status.textContent:READY_TEXT)}
+['pagehide','beforeunload','blur'].forEach(eventName=>window.addEventListener(eventName,()=>stopRecognitionHard(READY_TEXT)));document.addEventListener('visibilitychange',()=>{if(document.hidden)stopRecognitionHard(READY_TEXT)});
+voice.parseText.addEventListener('click',()=>{const text=voice.manualText.value.trim();if(text)showParsed(text,parseSpeech(text))});voice.apply.addEventListener('click',()=>{if(pendingValues)applyParsed(pendingValues);voice.box.classList.remove('is-visible')});voice.retry.addEventListener('click',()=>{pendingValues=null;voice.manualText.value='';voice.box.classList.remove('is-visible');setListening(false,READY_TEXT)});renderSettings();render();renderOrientationButtons();if('serviceWorker'in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js'));
+</script>
 </body>
 </html>
