@@ -3,26 +3,29 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>燃費・ガソリン代計算</title>
-  <meta name="description" content="走行距離、車に表示された燃費、ガソリン単価からガソリン代を計算するWebアプリです。">
-  <meta name="theme-color" content="#177245">
+  <title>撮影サイズ別 距離計算</title>
+  <meta name="description" content="人物撮影で、撮影サイズとレンズ焦点距離から必要な撮影距離を計算する現場向けWebアプリです。">
+  <meta name="theme-color" content="#2f5f66">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="燃費計算">
+  <meta name="apple-mobile-web-app-title" content="撮影距離">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon.svg">
   <style>
     :root {
-      --bg: #f4f7f3;
+      --bg: #f5f3ef;
       --panel: #ffffff;
-      --ink: #17211b;
-      --muted: #5f6b63;
-      --line: #d8e1d9;
-      --accent: #177245;
-      --accent-dark: #0f5a36;
+      --ink: #182023;
+      --muted: #637174;
+      --line: #d9dedb;
+      --accent: #2f5f66;
+      --accent-dark: #21494f;
+      --accent-soft: #e4eeee;
+      --gold: #b7832f;
       --warn: #a7501c;
-      --shadow: 0 18px 48px rgba(25, 46, 32, 0.12);
+      --good: #27744f;
+      --shadow: 0 18px 48px rgba(27, 35, 36, 0.12);
     }
 
     * { box-sizing: border-box; }
@@ -31,24 +34,27 @@
       margin: 0;
       min-height: 100vh;
       font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "YuGothic", "Meiryo", sans-serif;
-      background: linear-gradient(120deg, rgba(23, 114, 69, 0.10), transparent 45%), var(--bg);
+      background: linear-gradient(120deg, rgba(47, 95, 102, 0.12), transparent 42%), var(--bg);
       color: var(--ink);
     }
 
     main {
-      width: min(1040px, calc(100% - 28px));
+      width: min(1180px, calc(100% - 28px));
       margin: 0 auto;
       padding: max(22px, env(safe-area-inset-top)) 0 max(44px, env(safe-area-inset-bottom));
     }
 
-    header { margin-bottom: 20px; }
+    header { margin-bottom: 18px; }
 
     h1 {
       margin: 0 0 8px;
-      font-size: clamp(28px, 5vw, 48px);
-      line-height: 1.15;
+      font-size: clamp(28px, 5vw, 46px);
+      line-height: 1.16;
       letter-spacing: 0;
     }
+
+    h2 { margin: 0 0 12px; font-size: 20px; }
+    h3 { margin: 0 0 8px; font-size: 16px; }
 
     .lead {
       margin: 0;
@@ -57,9 +63,9 @@
       line-height: 1.7;
     }
 
-    .app {
+    .layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
+      grid-template-columns: 360px minmax(0, 1fr);
       gap: 18px;
       align-items: start;
     }
@@ -71,38 +77,19 @@
       box-shadow: var(--shadow);
     }
 
-    .form { padding: 20px; }
+    .controls { padding: 18px; }
 
-    .row {
-      display: grid;
-      grid-template-columns: 1fr 150px;
-      gap: 12px;
-      align-items: end;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--line);
-    }
+    .field { padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .field:first-child { padding-top: 0; }
+    .field:last-child { border-bottom: 0; padding-bottom: 0; }
 
-    .row:first-child { padding-top: 0; }
-    .row:last-child { border-bottom: 0; padding-bottom: 0; }
+    label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+    .hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
 
-    label {
-      display: block;
-      font-weight: 700;
-      font-size: 15px;
-      margin-bottom: 6px;
-    }
-
-    .hint {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    input,
-    select {
+    input, select {
       width: 100%;
       min-height: 46px;
-      border: 1px solid #bdcabf;
+      border: 1px solid #bbc7c4;
       border-radius: 6px;
       padding: 10px 12px;
       font-size: 18px;
@@ -110,300 +97,388 @@
       background: #fff;
     }
 
-    input:focus,
-    select:focus {
-      outline: 3px solid rgba(23, 114, 69, 0.18);
+    input:focus, select:focus {
+      outline: 3px solid rgba(47, 95, 102, 0.18);
       border-color: var(--accent);
     }
 
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
     .unit { position: relative; }
+    .unit span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; pointer-events: none; }
+    .unit input { padding-right: 48px; }
 
-    .unit span {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      font-size: 14px;
-      pointer-events: none;
+    .shot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
     }
 
-    .unit input { padding-right: 52px; }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 18px;
-    }
-
-    button {
-      min-height: 46px;
-      border: 0;
+    .shot-button, .mode-button {
+      min-height: 48px;
+      border: 1px solid #c7d2d0;
       border-radius: 6px;
-      padding: 0 18px;
-      font-size: 15px;
+      padding: 8px 10px;
+      background: #fff;
+      color: var(--ink);
       font-weight: 700;
+      font-size: 14px;
+      text-align: center;
       cursor: pointer;
     }
 
-    .primary { color: #fff; background: var(--accent); }
-    .primary:hover { background: var(--accent-dark); }
-    .secondary { color: var(--ink); background: #e7eee8; }
-
-    .result { overflow: hidden; }
-    .result-top { padding: 20px; background: #13251a; color: #fff; }
-    .result-top p { margin: 0 0 8px; color: rgba(255, 255, 255, 0.76); font-size: 14px; }
-
-    .cost {
-      font-size: clamp(36px, 8vw, 64px);
-      font-weight: 800;
-      line-height: 1;
-      letter-spacing: 0;
+    .shot-button.is-active, .mode-button.is-active {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
     }
 
-    .details {
+    .mode-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+
+    details {
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fafbf9;
+      overflow: hidden;
+    }
+
+    summary {
+      padding: 12px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .settings-grid { display: grid; gap: 10px; padding: 0 12px 12px; }
+    .setting-row { display: grid; grid-template-columns: 1fr 74px 74px 74px; gap: 6px; align-items: center; }
+    .setting-row strong { font-size: 12px; }
+    .setting-row input { min-height: 36px; padding: 6px; font-size: 14px; }
+    .setting-head { color: var(--muted); font-size: 11px; font-weight: 700; }
+
+    .result-panel { overflow: hidden; }
+
+    .hero-result {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 20px;
+      color: #fff;
+      background: #17282b;
+    }
+
+    .hero-result p { margin: 0 0 6px; color: rgba(255,255,255,0.72); font-size: 13px; }
+    .hero-result strong { display: block; font-size: clamp(30px, 7vw, 56px); line-height: 1; letter-spacing: 0; }
+    .badge { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: 999px; background: rgba(255,255,255,0.12); font-weight: 700; white-space: nowrap; }
+
+    .shot-info {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 1px;
       background: var(--line);
     }
 
-    .metric {
-      min-height: 104px;
-      padding: 16px;
-      background: #fff;
-    }
+    .info-box { padding: 16px; background: #fff; }
+    .info-box dt { margin: 0 0 6px; color: var(--muted); font-size: 12px; }
+    .info-box dd { margin: 0; font-size: 18px; font-weight: 800; }
+    .description { padding: 16px 20px; border-top: 1px solid var(--line); line-height: 1.7; color: #344044; }
 
-    .metric dt { margin: 0 0 8px; color: var(--muted); font-size: 13px; }
-    .metric dd { margin: 0; font-size: 24px; font-weight: 800; }
+    .table-wrap { overflow-x: auto; border-top: 1px solid var(--line); }
+    table { width: 100%; min-width: 840px; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: top; white-space: nowrap; }
+    th:first-child, td:first-child, th:last-child, td:last-child { text-align: left; }
+    th { color: var(--muted); font-size: 12px; background: #f8faf8; }
+    td small { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; white-space: normal; }
 
-    .compare { padding: 18px 20px 20px; }
-    .compare h2 { margin: 0 0 12px; font-size: 18px; }
+    .judge { display: inline-block; padding: 5px 8px; border-radius: 999px; font-weight: 700; font-size: 12px; background: var(--accent-soft); color: var(--accent-dark); }
+    .judge.good { background: #e6f3ec; color: var(--good); }
+    .judge.warn { background: #fff2e7; color: var(--warn); }
 
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .notes { margin-top: 18px; padding: 16px 18px; line-height: 1.75; color: #3f4b4f; }
+    .notes p { margin: 0; }
 
-    th,
-    td {
-      padding: 10px 8px;
-      border-bottom: 1px solid var(--line);
-      text-align: right;
-      white-space: nowrap;
-    }
-
-    th:first-child,
-    td:first-child { text-align: left; }
-    th { color: var(--muted); font-weight: 700; font-size: 12px; }
-
-    .error {
-      display: none;
-      margin-top: 12px;
-      padding: 12px;
-      border-left: 4px solid var(--warn);
-      background: #fff5ee;
-      color: #65310f;
-      font-size: 14px;
-    }
-
-    .error.is-visible { display: block; }
-
-    @media (max-width: 760px) {
-      main { width: min(100% - 20px, 520px); padding-top: max(18px, env(safe-area-inset-top)); }
-      .app { grid-template-columns: 1fr; }
-      .row { grid-template-columns: 1fr; }
-      .details { grid-template-columns: 1fr; }
-      .actions { flex-direction: column; }
-      button { width: 100%; }
+    @media (max-width: 860px) {
+      main { width: min(100% - 20px, 620px); }
+      .layout { grid-template-columns: 1fr; }
+      .hero-result { grid-template-columns: 1fr; }
+      .shot-info { grid-template-columns: 1fr; }
+      .setting-row { grid-template-columns: 1fr 62px 62px 62px; }
     }
   </style>
 </head>
 <body>
   <main>
     <header>
-      <h1>燃費・ガソリン代計算</h1>
-      <p class="lead">車に表示される燃費、走った距離、その日のガソリン単価を入れると、実際のガソリン代を計算します。</p>
+      <h1>撮影サイズ別 距離計算</h1>
+      <p class="lead">人物の身長、撮影サイズ、レンズ焦点距離から、縦位置・横位置それぞれの必要距離を計算します。</p>
     </header>
 
-    <section class="app" aria-label="燃費計算アプリ">
-      <form class="panel form" id="fuelForm">
-        <div class="row">
-          <div>
-            <label for="distance">走行距離</label>
-            <div class="hint">例: 撮影現場まで往復 120km</div>
+    <section class="layout" aria-label="撮影距離計算アプリ">
+      <aside class="panel controls">
+        <div class="field">
+          <label for="heightCm">人物の身長</label>
+          <div class="unit"><input id="heightCm" type="number" min="80" max="230" step="1" value="170" inputmode="numeric"><span>cm</span></div>
+        </div>
+
+        <div class="field">
+          <label>撮影サイズ</label>
+          <div class="hint">iPhoneでも押しやすいよう、ボタンで選べます。</div>
+          <div class="shot-grid" id="shotButtons"></div>
+        </div>
+
+        <div class="field">
+          <div class="two">
+            <div>
+              <label for="lensMm">比較用レンズ</label>
+              <div class="unit"><input id="lensMm" type="number" min="10" max="400" step="1" value="85" inputmode="numeric"><span>mm</span></div>
+            </div>
+            <div>
+              <label for="roomDepthM">部屋の奥行き</label>
+              <div class="unit"><input id="roomDepthM" type="number" min="1" max="30" step="0.1" value="4.0" inputmode="decimal"><span>m</span></div>
+            </div>
           </div>
-          <div class="unit">
-            <input id="distance" name="distance" type="number" min="0" step="0.1" value="120" inputmode="decimal">
-            <span>km</span>
+          <div class="hint">判定用です。部屋の奥行きは、被写体からカメラ後方の余裕まで含めた目安として使います。</div>
+        </div>
+
+        <div class="field">
+          <label>表示モード</label>
+          <div class="mode-buttons">
+            <button class="mode-button is-active" type="button" data-mode="lens">レンズ比較</button>
+            <button class="mode-button" type="button" data-mode="shot">撮影サイズ比較</button>
           </div>
         </div>
 
-        <div class="row">
-          <div>
-            <label for="efficiency">車に表示された燃費</label>
-            <div class="hint">多くの車は km/L 表示です。L/100km 表示の車も切替できます。</div>
+        <details>
+          <summary>詳細設定：比率と余白</summary>
+          <div class="settings-grid" id="manualSettings">
+            <div class="setting-row setting-head"><span>撮影サイズ</span><span>比率%</span><span>頭上cm</span><span>下側cm</span></div>
           </div>
+        </details>
+      </aside>
+
+      <section class="panel result-panel">
+        <div class="hero-result">
           <div>
-            <select id="efficiencyMode" name="efficiencyMode" aria-label="燃費の単位">
-              <option value="kmPerLiter">km/L</option>
-              <option value="literPer100km">L/100km</option>
-            </select>
-            <input id="efficiency" name="efficiency" type="number" min="0" step="0.1" value="12" inputmode="decimal" style="margin-top:8px">
+            <p id="resultLabel">選択中の撮影サイズ</p>
+            <strong id="mainDistance">0.00m</strong>
           </div>
+          <span class="badge" id="modeBadge">レンズ比較</span>
         </div>
 
-        <div class="row">
-          <div>
-            <label for="price">ガソリン単価</label>
-            <div class="hint">今日の価格を入力。例: 180円/L</div>
-          </div>
-          <div class="unit">
-            <input id="price" name="price" type="number" min="0" step="1" value="180" inputmode="decimal">
-            <span>円/L</span>
-          </div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label for="cars">台数</label>
-            <div class="hint">1台だけなら 1 のままでOKです。</div>
-          </div>
-          <div class="unit">
-            <input id="cars" name="cars" type="number" min="1" step="1" value="1" inputmode="numeric">
-            <span>台</span>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button class="primary" type="submit">計算する</button>
-          <button class="secondary" type="button" id="sampleButton">例を入れる</button>
-        </div>
-        <div class="error" id="errorMessage" role="alert"></div>
-      </form>
-
-      <aside class="panel result" aria-live="polite">
-        <div class="result-top">
-          <p>合計ガソリン代</p>
-          <div class="cost" id="totalCost">0円</div>
-        </div>
-        <dl class="details">
-          <div class="metric"><dt>1台あたり</dt><dd id="costPerCar">0円</dd></div>
-          <div class="metric"><dt>必要なガソリン</dt><dd id="litersNeeded">0L</dd></div>
-          <div class="metric"><dt>1kmあたり</dt><dd id="costPerKm">0円</dd></div>
-          <div class="metric"><dt>計算式</dt><dd id="formula" style="font-size:15px;line-height:1.45">-</dd></div>
+        <dl class="shot-info">
+          <div class="info-box"><dt>写したい高さ</dt><dd id="targetHeight">0cm</dd></div>
+          <div class="info-box"><dt>余白込みの必要高さ</dt><dd id="neededHeight">0cm</dd></div>
+          <div class="info-box"><dt>縦位置の写る横幅</dt><dd id="portraitWidth">0cm</dd></div>
+          <div class="info-box"><dt>横位置の写る横幅</dt><dd id="landscapeWidth">0cm</dd></div>
         </dl>
-        <div class="compare">
-          <h2>単価別の比較</h2>
+        <div class="description" id="shotDescription"></div>
+
+        <div class="table-wrap">
           <table>
-            <thead><tr><th>ガソリン単価</th><th>1台あたり</th><th>合計</th></tr></thead>
-            <tbody id="compareRows"></tbody>
+            <thead>
+              <tr>
+                <th>撮影サイズ</th>
+                <th>レンズ</th>
+                <th>縦位置距離</th>
+                <th>横位置距離</th>
+                <th>写る高さ</th>
+                <th>写る横幅</th>
+                <th>必要な部屋の奥行き</th>
+                <th>判定</th>
+              </tr>
+            </thead>
+            <tbody id="resultRows"></tbody>
           </table>
         </div>
-      </aside>
+      </section>
+    </section>
+
+    <section class="panel notes">
+      <h2>注意書き</h2>
+      <p>バストアップ、ミディアム、ニーショットなどの範囲は、撮影現場やカメラマンによって多少解釈が変わります。このアプリでは、身長に対する比率で簡易計算しています。実際の撮影では、顔の大きさ、姿勢、髪型、衣装、手の位置、構図の余白によって必要距離が変わります。</p>
     </section>
   </main>
 
   <script>
-    const form = document.getElementById("fuelForm");
-    const fields = {
-      distance: document.getElementById("distance"),
-      efficiency: document.getElementById("efficiency"),
-      efficiencyMode: document.getElementById("efficiencyMode"),
-      price: document.getElementById("price"),
-      cars: document.getElementById("cars")
+    const SENSOR = {
+      portrait: { height: 36, width: 24 },
+      landscape: { height: 24, width: 36 }
     };
-    const output = {
-      totalCost: document.getElementById("totalCost"),
-      costPerCar: document.getElementById("costPerCar"),
-      litersNeeded: document.getElementById("litersNeeded"),
-      costPerKm: document.getElementById("costPerKm"),
-      formula: document.getElementById("formula"),
-      compareRows: document.getElementById("compareRows"),
-      error: document.getElementById("errorMessage")
+    const LENSES = [24, 35, 50, 85, 135, 200];
+    const CAMERA_BACK_MARGIN_M = 1.0;
+    const SHOTS = [
+      { id: "full", name: "全身", ratio: 100, top: 10, bottom: 10, description: "頭から足先まで入る構図。成人式、学校写真、プロフィール全身、ファッション撮影などで使います。" },
+      { id: "knee", name: "ニーショット", ratio: 75, top: 8, bottom: 8, description: "頭から膝あたりまで入る構図。全身より寄った印象で、人物の雰囲気と服装の両方を見せやすい撮影サイズです。" },
+      { id: "medium", name: "ミディアムショット", ratio: 60, top: 7, bottom: 7, description: "頭から腰、または太もも上あたりまで入る構図。企業プロフィール、インタビュー、人物紹介で使いやすい撮影サイズです。" },
+      { id: "middle", name: "ミドルショット", ratio: 50, top: 6, bottom: 6, description: "このアプリでは頭から腰あたりまでの構図として扱います。ミディアムショットより少し上半身寄りの構図です。" },
+      { id: "bust", name: "バストアップ", ratio: 35, top: 5, bottom: 5, description: "頭から胸あたりまで入る構図。プロフィール写真、宣材写真、インタビュー写真でよく使います。" },
+      { id: "close", name: "アップ", ratio: 25, top: 4, bottom: 4, description: "顔から肩まわりまで入る構図。表情をしっかり見せたい時に使います。" },
+      { id: "face", name: "顔アップ", ratio: 18, top: 3, bottom: 3, description: "顔中心のかなり寄った構図。証明写真風、表情重視、SNSアイコンなどで使います。" }
+    ];
+
+    const state = {
+      shotId: "full",
+      mode: "lens"
     };
 
-    const yen = new Intl.NumberFormat("ja-JP", {
-      style: "currency",
-      currency: "JPY",
-      maximumFractionDigits: 0
-    });
+    const el = {
+      heightCm: document.getElementById("heightCm"),
+      lensMm: document.getElementById("lensMm"),
+      roomDepthM: document.getElementById("roomDepthM"),
+      shotButtons: document.getElementById("shotButtons"),
+      manualSettings: document.getElementById("manualSettings"),
+      resultLabel: document.getElementById("resultLabel"),
+      mainDistance: document.getElementById("mainDistance"),
+      modeBadge: document.getElementById("modeBadge"),
+      targetHeight: document.getElementById("targetHeight"),
+      neededHeight: document.getElementById("neededHeight"),
+      portraitWidth: document.getElementById("portraitWidth"),
+      landscapeWidth: document.getElementById("landscapeWidth"),
+      shotDescription: document.getElementById("shotDescription"),
+      resultRows: document.getElementById("resultRows")
+    };
 
-    function toNumber(input) {
-      return Number(input.value);
+    function number(input, fallback) {
+      const value = Number(input.value);
+      return Number.isFinite(value) && value > 0 ? value : fallback;
     }
 
-    function getLiters(distance, efficiency, mode) {
-      if (mode === "literPer100km") return distance * efficiency / 100;
-      return distance / efficiency;
+    function shotById(id) {
+      return SHOTS.find((shot) => shot.id === id) || SHOTS[0];
     }
 
-    function calculate() {
-      const distance = toNumber(fields.distance);
-      const efficiency = toNumber(fields.efficiency);
-      const mode = fields.efficiencyMode.value;
-      const price = toNumber(fields.price);
-      const cars = Math.max(1, Math.floor(toNumber(fields.cars)));
+    function metrics(shot, lensMm) {
+      const heightCm = number(el.heightCm, 170);
+      const targetHeightCm = heightCm * (shot.ratio / 100);
+      const neededHeightCm = targetHeightCm + shot.top + shot.bottom;
+      const neededHeightMm = neededHeightCm * 10;
+      const portraitDistanceM = (lensMm * neededHeightMm / SENSOR.portrait.height) / 1000;
+      const landscapeDistanceM = (lensMm * neededHeightMm / SENSOR.landscape.height) / 1000;
+      const portraitWidthCm = neededHeightCm * SENSOR.portrait.width / SENSOR.portrait.height;
+      const landscapeWidthCm = neededHeightCm * SENSOR.landscape.width / SENSOR.landscape.height;
+      const requiredRoomM = Math.max(portraitDistanceM, landscapeDistanceM) + CAMERA_BACK_MARGIN_M;
+      return { targetHeightCm, neededHeightCm, portraitDistanceM, landscapeDistanceM, portraitWidthCm, landscapeWidthCm, requiredRoomM };
+    }
 
-      if (distance <= 0 || efficiency <= 0 || price <= 0 || cars <= 0) {
-        output.error.textContent = "走行距離、燃費、ガソリン単価、台数をすべて正の数字で入力してください。";
-        output.error.classList.add("is-visible");
-        return;
+    function fmtM(value) { return `${value.toFixed(2)}m`; }
+    function fmtCm(value) { return `${Math.round(value)}cm`; }
+
+    function judge(shot, lensMm, requiredRoomM) {
+      const roomDepth = number(el.roomDepthM, 4);
+      let text = "標準的";
+      let tone = "";
+      if (shot.id === "full") {
+        if (lensMm <= 35) text = "室内でも撮りやすいが広角感に注意";
+        else if (lensMm <= 50) text = "自然な全身撮影に使いやすい";
+        else text = "広い場所が必要";
+      } else if (shot.id === "bust") {
+        if (lensMm <= 50) text = "室内で使いやすい";
+        else if (lensMm <= 85) text = "プロフィール・宣材写真に使いやすい";
+        else text = "背景を整理しやすいが距離が必要";
+      } else if (shot.id === "close" || shot.id === "face") {
+        if (lensMm <= 85) text = "表情を自然に撮りやすい";
+        else if (lensMm <= 135) text = "圧縮感が出て背景を整理しやすい";
+        else text = "広い場所向き";
+      } else if (shot.id === "knee") {
+        text = lensMm <= 50 ? "室内向き" : "人物の雰囲気を出しやすい";
+      } else {
+        text = lensMm <= 85 ? "企業プロフィールに使いやすい" : "背景整理向き";
       }
-
-      output.error.classList.remove("is-visible");
-      fields.cars.value = String(cars);
-
-      const litersPerCar = getLiters(distance, efficiency, mode);
-      const costPerCar = litersPerCar * price;
-      const totalCost = costPerCar * cars;
-      const costPerKm = costPerCar / distance;
-      const efficiencyLabel = mode === "literPer100km" ? `${efficiency}L/100km` : `${efficiency}km/L`;
-
-      output.totalCost.textContent = yen.format(totalCost);
-      output.costPerCar.textContent = yen.format(costPerCar);
-      output.litersNeeded.textContent = `${(litersPerCar * cars).toFixed(2)}L`;
-      output.costPerKm.textContent = `${yen.format(costPerKm)}/km`;
-      output.formula.textContent = `${distance}km ÷ ${efficiencyLabel} -> ${litersPerCar.toFixed(2)}L × ${price}円`;
-
-      renderComparison(distance, efficiency, mode, cars, price);
+      if (requiredRoomM > roomDepth) {
+        text = `${text} / 奥行き不足`;
+        tone = "warn";
+      } else if (requiredRoomM <= roomDepth - 0.8) {
+        tone = "good";
+      }
+      return { text, tone };
     }
 
-    function renderComparison(distance, efficiency, mode, cars, currentPrice) {
-      const basePrices = [150, 160, 170, 180, 190, 200];
-      const prices = Array.from(new Set([...basePrices, Math.round(currentPrice)])).sort((a, b) => a - b);
-      const litersPerCar = getLiters(distance, efficiency, mode);
-
-      output.compareRows.innerHTML = prices.map((price) => {
-        const perCar = litersPerCar * price;
-        const total = perCar * cars;
-        const label = price === Math.round(currentPrice) ? `${price}円/L 現在` : `${price}円/L`;
-        return `<tr><td>${label}</td><td>${yen.format(perCar)}</td><td>${yen.format(total)}</td></tr>`;
-      }).join("");
+    function renderButtons() {
+      el.shotButtons.innerHTML = SHOTS.map((shot) => `<button class="shot-button${shot.id === state.shotId ? " is-active" : ""}" type="button" data-shot="${shot.id}">${shot.name}</button>`).join("");
+      document.querySelectorAll("[data-shot]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.shotId = button.dataset.shot;
+          render();
+        });
+      });
     }
 
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      calculate();
+    function renderSettings() {
+      const rows = SHOTS.map((shot) => `
+        <div class="setting-row">
+          <strong>${shot.name}</strong>
+          <input type="number" min="5" max="120" step="1" value="${shot.ratio}" data-setting="ratio" data-shot-id="${shot.id}" aria-label="${shot.name} 比率">
+          <input type="number" min="0" max="50" step="1" value="${shot.top}" data-setting="top" data-shot-id="${shot.id}" aria-label="${shot.name} 頭上余白">
+          <input type="number" min="0" max="50" step="1" value="${shot.bottom}" data-setting="bottom" data-shot-id="${shot.id}" aria-label="${shot.name} 下側余白">
+        </div>
+      `).join("");
+      el.manualSettings.innerHTML = `<div class="setting-row setting-head"><span>撮影サイズ</span><span>比率%</span><span>頭上cm</span><span>下側cm</span></div>${rows}`;
+      el.manualSettings.querySelectorAll("input").forEach((input) => {
+        input.addEventListener("input", () => {
+          const shot = shotById(input.dataset.shotId);
+          const value = Number(input.value);
+          if (Number.isFinite(value)) shot[input.dataset.setting] = value;
+          renderResults();
+        });
+      });
+    }
+
+    function row(shot, lensMm) {
+      const m = metrics(shot, lensMm);
+      const j = judge(shot, lensMm, m.requiredRoomM);
+      return `<tr>
+        <td>${shot.name}<small>${shot.ratio}% / 上${shot.top}cm 下${shot.bottom}cm</small></td>
+        <td>${lensMm}mm</td>
+        <td>${fmtM(m.portraitDistanceM)}</td>
+        <td>${fmtM(m.landscapeDistanceM)}</td>
+        <td>${fmtCm(m.neededHeightCm)}<small>人物範囲 ${fmtCm(m.targetHeightCm)}</small></td>
+        <td>縦 ${fmtCm(m.portraitWidthCm)}<small>横 ${fmtCm(m.landscapeWidthCm)}</small></td>
+        <td>${fmtM(m.requiredRoomM)}<small>距離 + 後方余裕 ${CAMERA_BACK_MARGIN_M.toFixed(1)}m</small></td>
+        <td><span class="judge ${j.tone}">${j.text}</span></td>
+      </tr>`;
+    }
+
+    function renderResults() {
+      const selectedShot = shotById(state.shotId);
+      const lens = Math.round(number(el.lensMm, 85));
+      const main = metrics(selectedShot, lens);
+      el.resultLabel.textContent = `${selectedShot.name} / ${lens}mm / 縦位置距離`;
+      el.mainDistance.textContent = fmtM(main.portraitDistanceM);
+      el.modeBadge.textContent = state.mode === "lens" ? "レンズ比較" : "撮影サイズ比較";
+      el.targetHeight.textContent = fmtCm(main.targetHeightCm);
+      el.neededHeight.textContent = fmtCm(main.neededHeightCm);
+      el.portraitWidth.textContent = fmtCm(main.portraitWidthCm);
+      el.landscapeWidth.textContent = fmtCm(main.landscapeWidthCm);
+      el.shotDescription.textContent = selectedShot.description;
+
+      if (state.mode === "lens") {
+        el.resultRows.innerHTML = LENSES.map((lensMm) => row(selectedShot, lensMm)).join("");
+      } else {
+        el.resultRows.innerHTML = SHOTS.map((shot) => row(shot, lens)).join("");
+      }
+    }
+
+    function render() {
+      renderButtons();
+      renderResults();
+    }
+
+    document.querySelectorAll("[data-mode]").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.mode = button.dataset.mode;
+        document.querySelectorAll("[data-mode]").forEach((item) => item.classList.toggle("is-active", item.dataset.mode === state.mode));
+        renderResults();
+      });
     });
 
-    Object.values(fields).forEach((field) => {
-      field.addEventListener("input", calculate);
-      field.addEventListener("change", calculate);
-    });
+    [el.heightCm, el.lensMm, el.roomDepthM].forEach((input) => input.addEventListener("input", renderResults));
 
-    document.getElementById("sampleButton").addEventListener("click", () => {
-      fields.distance.value = "120";
-      fields.efficiencyMode.value = "kmPerLiter";
-      fields.efficiency.value = "12";
-      fields.price.value = "180";
-      fields.cars.value = "1";
-      calculate();
-    });
-
-    calculate();
+    renderSettings();
+    render();
 
     if ("serviceWorker" in navigator && location.protocol === "https:") {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./service-worker.js");
-      });
+      window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js"));
     }
   </script>
 </body>
