@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>燃費・ガソリン代計算</title>
+  <meta name="description" content="走行距離、車に表示された燃費、ガソリン単価から撮影現場までの移動費を計算するWebアプリです。">
+  <meta name="theme-color" content="#177245">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="燃費計算">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <style>
+    :root {
+      --bg: #f4f7f3;
+      --panel: #ffffff;
+      --ink: #17211b;
+      --muted: #5f6b63;
+      --line: #d8e1d9;
+      --accent: #177245;
+      --accent-dark: #0f5a36;
+      --warn: #a7501c;
+      --shadow: 0 18px 48px rgba(25, 46, 32, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "YuGothic", "Meiryo", sans-serif;
+      background: linear-gradient(120deg, rgba(23, 114, 69, 0.10), transparent 45%), var(--bg);
+      color: var(--ink);
+    }
+    main { width: min(1040px, calc(100% - 28px)); margin: 0 auto; padding: max(22px, env(safe-area-inset-top)) 0 max(44px, env(safe-area-inset-bottom)); }
+    header { margin-bottom: 20px; }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 48px); line-height: 1.15; letter-spacing: 0; }
+    .lead { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
+    .nav { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .nav a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border-radius: 6px; background: #e7eee8; color: var(--ink); text-decoration: none; font-weight: 700; }
+    .app { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr); gap: 18px; align-items: start; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
+    .form { padding: 20px; }
+    .row { display: grid; grid-template-columns: 1fr 150px; gap: 12px; align-items: end; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .row:first-child { padding-top: 0; }
+    .row:last-child { border-bottom: 0; padding-bottom: 0; }
+    label { display: block; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+    .hint { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    input, select { width: 100%; min-height: 46px; border: 1px solid #bdcabf; border-radius: 6px; padding: 10px 12px; font-size: 18px; color: var(--ink); background: #fff; }
+    input:focus, select:focus { outline: 3px solid rgba(23, 114, 69, 0.18); border-color: var(--accent); }
+    .unit { position: relative; }
+    .unit span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+    .unit input { padding-right: 52px; }
+    .actions { display: flex; gap: 10px; margin-top: 18px; }
+    button { min-height: 46px; border: 0; border-radius: 6px; padding: 0 18px; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .primary { color: #fff; background: var(--accent); }
+    .primary:hover { background: var(--accent-dark); }
+    .secondary { color: var(--ink); background: #e7eee8; }
+    .result { overflow: hidden; }
+    .result-top { padding: 20px; background: #13251a; color: #fff; }
+    .result-top p { margin: 0 0 8px; color: rgba(255, 255, 255, 0.76); font-size: 14px; }
+    .cost { font-size: clamp(36px, 8vw, 64px); font-weight: 800; line-height: 1; letter-spacing: 0; }
+    .details { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); }
+    .metric { min-height: 104px; padding: 16px; background: #fff; }
+    .metric dt { margin: 0 0 8px; color: var(--muted); font-size: 13px; }
+    .metric dd { margin: 0; font-size: 24px; font-weight: 800; }
+    .compare { padding: 18px 20px 20px; }
+    .compare h2 { margin: 0 0 12px; font-size: 18px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    th { color: var(--muted); font-weight: 700; font-size: 12px; }
+    .error { display: none; margin-top: 12px; padding: 12px; border-left: 4px solid var(--warn); background: #fff5ee; color: #65310f; font-size: 14px; }
+    .error.is-visible { display: block; }
+    @media (max-width: 760px) {
+      main { width: min(100% - 20px, 520px); }
+      .app { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+      .details { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>燃費・ガソリン代計算</h1>
+      <p class="lead">撮影現場までの走行距離、車に表示された燃費、その日のガソリン単価を入れると、移動にかかるガソリン代を計算します。</p>
+      <nav class="nav" aria-label="アプリ切り替え">
+        <a href="./">撮影距離へ</a>
+        <a href="./fuel.html" aria-current="page">燃費計算</a>
+      </nav>
+    </header>
+
+    <section class="app" aria-label="燃費計算アプリ">
+      <form class="panel form" id="fuelForm">
+        <div class="row">
+          <div><label for="distance">走行距離</label><div class="hint">例: 撮影現場まで往復 120km</div></div>
+          <div class="unit"><input id="distance" type="number" min="0" step="0.1" value="120" inputmode="decimal"><span>km</span></div>
+        </div>
+        <div class="row">
+          <div><label for="efficiency">車に表示された燃費</label><div class="hint">多くの車は km/L 表示です。L/100km 表示の車も切替できます。</div></div>
+          <div><select id="efficiencyMode" aria-label="燃費の単位"><option value="kmPerLiter">km/L</option><option value="literPer100km">L/100km</option></select><input id="efficiency" type="number" min="0" step="0.1" value="12" inputmode="decimal" style="margin-top:8px"></div>
+        </div>
+        <div class="row">
+          <div><label for="price">ガソリン単価</label><div class="hint">今日の価格を入力。例: 180円/L</div></div>
+          <div class="unit"><input id="price" type="number" min="0" step="1" value="180" inputmode="decimal"><span>円/L</span></div>
+        </div>
+        <div class="row">
+          <div><label for="cars">台数</label><div class="hint">1台だけなら 1 のままでOKです。</div></div>
+          <div class="unit"><input id="cars" type="number" min="1" step="1" value="1" inputmode="numeric"><span>台</span></div>
+        </div>
+        <div class="actions"><button class="primary" type="submit">計算する</button><button class="secondary" type="button" id="sampleButton">例を入れる</button></div>
+        <div class="error" id="errorMessage" role="alert"></div>
+      </form>
+
+      <aside class="panel result" aria-live="polite">
+        <div class="result-top"><p>合計ガソリン代</p><div class="cost" id="totalCost">0円</div></div>
+        <dl class="details">
+          <div class="metric"><dt>1台あたり</dt><dd id="costPerCar">0円</dd></div>
+          <div class="metric"><dt>必要なガソリン</dt><dd id="litersNeeded">0L</dd></div>
+          <div class="metric"><dt>1kmあたり</dt><dd id="costPerKm">0円</dd></div>
+          <div class="metric"><dt>計算式</dt><dd id="formula" style="font-size:15px;line-height:1.45">-</dd></div>
+        </dl>
+        <div class="compare"><h2>単価別の比較</h2><table><thead><tr><th>ガソリン単価</th><th>1台あたり</th><th>合計</th></tr></thead><tbody id="compareRows"></tbody></table></div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("fuelForm");
+    const fields = {
+      distance: document.getElementById("distance"),
+      efficiency: document.getElementById("efficiency"),
+      efficiencyMode: document.getElementById("efficiencyMode"),
+      price: document.getElementById("price"),
+      cars: document.getElementById("cars")
+    };
+    const output = {
+      totalCost: document.getElementById("totalCost"),
+      costPerCar: document.getElementById("costPerCar"),
+      litersNeeded: document.getElementById("litersNeeded"),
+      costPerKm: document.getElementById("costPerKm"),
+      formula: document.getElementById("formula"),
+      compareRows: document.getElementById("compareRows"),
+      error: document.getElementById("errorMessage")
+    };
+    const yen = new Intl.NumberFormat("ja-JP", { style: "currency", currency: "JPY", maximumFractionDigits: 0 });
+    function toNumber(input) { return Number(input.value); }
+    function getLiters(distance, efficiency, mode) { return mode === "literPer100km" ? distance * efficiency / 100 : distance / efficiency; }
+    function calculate() {
+      const distance = toNumber(fields.distance);
+      const efficiency = toNumber(fields.efficiency);
+      const mode = fields.efficiencyMode.value;
+      const price = toNumber(fields.price);
+      const cars = Math.max(1, Math.floor(toNumber(fields.cars)));
+      if (distance <= 0 || efficiency <= 0 || price <= 0 || cars <= 0) {
+        output.error.textContent = "走行距離、燃費、ガソリン単価、台数をすべて正の数字で入力してください。";
+        output.error.classList.add("is-visible");
+        return;
+      }
+      output.error.classList.remove("is-visible");
+      fields.cars.value = String(cars);
+      const litersPerCar = getLiters(distance, efficiency, mode);
+      const costPerCar = litersPerCar * price;
+      const totalCost = costPerCar * cars;
+      const costPerKm = costPerCar / distance;
+      const efficiencyLabel = mode === "literPer100km" ? `${efficiency}L/100km` : `${efficiency}km/L`;
+      output.totalCost.textContent = yen.format(totalCost);
+      output.costPerCar.textContent = yen.format(costPerCar);
+      output.litersNeeded.textContent = `${(litersPerCar * cars).toFixed(2)}L`;
+      output.costPerKm.textContent = `${yen.format(costPerKm)}/km`;
+      output.formula.textContent = `${distance}km ÷ ${efficiencyLabel} -> ${litersPerCar.toFixed(2)}L × ${price}円`;
+      renderComparison(distance, efficiency, mode, cars, price);
+    }
+    function renderComparison(distance, efficiency, mode, cars, currentPrice) {
+      const basePrices = [150, 160, 170, 180, 190, 200];
+      const prices = Array.from(new Set([...basePrices, Math.round(currentPrice)])).sort((a, b) => a - b);
+      const litersPerCar = getLiters(distance, efficiency, mode);
+      output.compareRows.innerHTML = prices.map((price) => {
+        const perCar = litersPerCar * price;
+        const total = perCar * cars;
+        const label = price === Math.round(currentPrice) ? `${price}円/L 現在` : `${price}円/L`;
+        return `<tr><td>${label}</td><td>${yen.format(perCar)}</td><td>${yen.format(total)}</td></tr>`;
+      }).join("");
+    }
+    form.addEventListener("submit", (event) => { event.preventDefault(); calculate(); });
+    Object.values(fields).forEach((field) => { field.addEventListener("input", calculate); field.addEventListener("change", calculate); });
+    document.getElementById("sampleButton").addEventListener("click", () => {
+      fields.distance.value = "120";
+      fields.efficiencyMode.value = "kmPerLiter";
+      fields.efficiency.value = "12";
+      fields.price.value = "180";
+      fields.cars.value = "1";
+      calculate();
+    });
+    calculate();
+  </script>
+</body>
+</html>
