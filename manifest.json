@@ -1,0 +1,19 @@
+{
+  "name": "燃費・ガソリン代計算",
+  "short_name": "燃費計算",
+  "description": "走行距離、燃費、ガソリン単価からガソリン代を計算します。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7f3",
+  "theme_color": "#177245",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
