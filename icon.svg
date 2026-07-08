@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="燃費計算">
+  <rect width="512" height="512" rx="96" fill="#177245"/>
+  <circle cx="256" cy="250" r="160" fill="#ffffff" opacity="0.96"/>
+  <path d="M256 116a134 134 0 0 1 134 134" fill="none" stroke="#177245" stroke-width="28" stroke-linecap="round"/>
+  <path d="M256 250 340 176" fill="none" stroke="#177245" stroke-width="28" stroke-linecap="round"/>
+  <path d="M160 350h192" fill="none" stroke="#177245" stroke-width="32" stroke-linecap="round"/>
+  <text x="256" y="430" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="700" fill="#ffffff">km/L</text>
+</svg>
