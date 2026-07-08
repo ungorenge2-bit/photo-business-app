@@ -1,12 +1,12 @@
 {
-  "name": "燃費・ガソリン代計算",
-  "short_name": "燃費計算",
-  "description": "走行距離、燃費、ガソリン単価からガソリン代を計算します。",
+  "name": "撮影サイズ別 距離計算",
+  "short_name": "撮影距離",
+  "description": "人物撮影で、撮影サイズとレンズ焦点距離から必要な撮影距離を計算します。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f4f7f3",
-  "theme_color": "#177245",
+  "background_color": "#f5f3ef",
+  "theme_color": "#2f5f66",
   "orientation": "portrait-primary",
   "icons": [
     {
